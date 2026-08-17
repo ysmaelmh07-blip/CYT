@@ -2,3109 +2,1350 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yisma Lab · MRU, MRUV, Caída Libre, MCU, MCV y Parabólico</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DCL·Lab — Diagramas de Cuerpo Libre</title>
+<meta name="description" content="Simulador interactivo de Diagramas de Cuerpo Libre: teoría, práctica y un examen de un solo intento con cartilla descargable.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg-deep:#0a1120;
-    --bg-panel:#111b2e;
-    --bg-panel-alt:#16223a;
-    --bg-input:#0d1626;
-    --grid-line:rgba(127,231,196,0.09);
-    --hair:rgba(147,160,184,0.16);
-    --phosphor:#7fe7c4;
-    --phosphor-dim:rgba(127,231,196,0.35);
-    --amber:#ffb454;
-    --blue:#6ea8fe;
-    --text:#e9edf5;
-    --muted:#8d99b3;
-    --danger:#ff8a7a;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:
-      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(127,231,196,0.06), transparent 60%),
-      radial-gradient(ellipse 700px 500px at 100% 0%, rgba(110,168,254,0.05), transparent 55%),
-      var(--bg-deep);
-    color:var(--text);
-    font-family:'Inter',sans-serif;
-    line-height:1.55;
-    min-height:100vh;
-  }
-  ::selection{background:var(--phosphor-dim);}
-  h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;margin:0;letter-spacing:-0.01em;}
-  .mono{font-family:'JetBrains Mono',monospace;}
-  a{color:var(--phosphor);}
+:root{
+  --chalk-bg: #16241C;
+  --chalk-bg-2: #1D3226;
+  --paper: #F6F1E3;
+  --paper-2: #EDE6D2;
+  --ink: #1E2A22;
+  --chalk-white: #F4F1E8;
+  --accent: #FFD166;
+  --accent-ink: #3A2A00;
+  --peso: #FF6B6B;
+  --normal: #4ECDC4;
+  --tension: #95E06C;
+  --aplicada: #FFD166;
+  --friccion: #C084FC;
+  --elastica: #60A5FA;
+  --good: #6FCF97;
+  --bad: #FF6B6B;
+  --grid-line: rgba(244,241,232,0.07);
+  --shadow: 0 18px 40px rgba(0,0,0,0.35);
+  --radius: 18px;
+  --maxw: 1180px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--chalk-bg);
+  color:var(--chalk-white);
+  font-family:'Space Grotesk', sans-serif;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{
+  font-family:'Fraunces', serif;
+  font-weight:600;
+  margin:0 0 .4em 0;
+  letter-spacing:-0.01em;
+}
+p{margin:0 0 1em 0;}
+.mono{font-family:'IBM Plex Mono', monospace;}
+img,svg{display:block;max-width:100%;}
+a{color:inherit;}
+::selection{background:var(--accent); color:var(--accent-ink);}
 
-  /* ---------- Boot / loading screen ---------- */
-  #boot-screen{
-    position:fixed;inset:0;z-index:999;
-    background:var(--bg-deep);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
-    transition:opacity 0.55s ease, visibility 0.55s ease;
-  }
-  #boot-screen.hide{opacity:0;visibility:hidden;pointer-events:none;}
-  .boot-logo{
-    font-family:'Space Grotesk',sans-serif;font-weight:700;
-    font-size:clamp(28px,5vw,42px);color:var(--text);letter-spacing:0.02em;
-    display:flex;align-items:baseline;gap:10px;
-  }
-  .boot-logo .dot{
-    width:10px;height:10px;border-radius:50%;
-    background:var(--phosphor);
-    box-shadow:0 0 14px 3px rgba(127,231,196,0.6);
-    animation:blink 1.1s ease-in-out infinite;
-  }
-  .boot-logo span{color:var(--phosphor);text-shadow:0 0 24px rgba(127,231,196,0.45);}
-  .boot-bar{width:240px;height:4px;background:var(--bg-panel-alt);border-radius:2px;overflow:hidden;}
-  .boot-fill{height:100%;width:0%;background:var(--phosphor);box-shadow:0 0 10px rgba(127,231,196,0.6);animation:bootFill 1.15s ease forwards;}
-  @keyframes bootFill{ to{width:100%;} }
-  .boot-sub{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);letter-spacing:0.04em;}
+.chalk-texture{
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
 
-  /* ---------- Header ---------- */
-  header.hero{
-    padding:56px 24px 40px;
-    max-width:1100px;
-    margin:0 auto;
-    border-bottom:1px solid var(--hair);
-    position:relative;
-    overflow:hidden;
-  }
-  .hero-cloud{
-    position:absolute;
-    font-size:34px;
-    opacity:0.16;
-    pointer-events:none;
-    filter:blur(0.3px);
-    animation:driftCloud 34s ease-in-out infinite;
-  }
-  .hero-cloud.c1{top:18px; left:8%; animation-duration:38s;}
-  .hero-cloud.c2{top:70px; left:78%; font-size:44px; animation-duration:44s; animation-delay:-6s;}
-  .hero-cloud.c3{top:140px; left:42%; font-size:26px; animation-duration:30s; animation-delay:-14s;}
-  @keyframes driftCloud{
-    0%{transform:translateX(0);}
-    50%{transform:translateX(26px);}
-    100%{transform:translateX(0);}
-  }
-  .eyebrow{
-    font-family:'JetBrains Mono',monospace;
-    font-size:12px;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    color:var(--phosphor);
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin-bottom:18px;
-  }
-  .eyebrow::before{
-    content:"";
-    width:8px;height:8px;border-radius:50%;
-    background:var(--phosphor);
-    box-shadow:0 0 10px 2px var(--phosphor-dim);
-    animation:blink 2.4s ease-in-out infinite;
-  }
-  @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.35;}}
-  h1.title{
-    font-size:clamp(32px,5vw,52px);
-    font-weight:700;
-    max-width:820px;
-  }
-  h1.title span{color:var(--phosphor);}
-  .subtitle{
-    color:var(--muted);
-    font-size:16px;
-    max-width:640px;
-    margin-top:16px;
-  }
-  .hero-readout{
-    margin-top:32px;
-    display:flex;
-    gap:28px;
-    flex-wrap:wrap;
-    font-family:'JetBrains Mono',monospace;
-    font-size:13px;
-    color:var(--muted);
-  }
-  .hero-readout b{color:var(--phosphor);font-weight:600;}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px;}
 
-  /* ---------- Nav ---------- */
-  nav.tabs{
-    position:sticky;
-    top:0;
-    z-index:20;
-    background:rgba(10,17,32,0.86);
-    backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--hair);
-  }
-  .tabs-inner{
-    max-width:1100px;
-    margin:0 auto;
-    display:flex;
-    gap:4px;
-    padding:0 24px;
-    overflow-x:auto;
-  }
-  .tab-btn{
-    background:none;
-    border:none;
-    color:var(--muted);
-    font-family:'JetBrains Mono',monospace;
-    font-size:13px;
-    padding:18px 16px;
-    cursor:pointer;
-    border-bottom:2px solid transparent;
-    white-space:nowrap;
-    transition:color 0.15s ease, border-color 0.15s ease;
-    position:relative;
-    overflow:hidden;
-  }
-  .tab-btn:hover{color:var(--text);}
-  .tab-btn.active{color:var(--phosphor);border-bottom-color:var(--phosphor);}
-  .tab-btn .num{opacity:0.55;margin-right:8px;}
-  .tab-visited-dot{
-    display:inline-block;width:5px;height:5px;border-radius:50%;
-    background:var(--phosphor);margin-left:7px;opacity:0;
-    box-shadow:0 0 6px rgba(127,231,196,0.7);
-    transition:opacity 0.3s ease;
-    vertical-align:middle;
-  }
-  .tab-btn.visited .tab-visited-dot{opacity:1;}
+/* ---------- NAV ---------- */
+.navbar{
+  position:sticky; top:0; z-index:100;
+  background:rgba(22,36,28,0.92);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(244,241,232,0.08);
+}
+.nav-inner{
+  max-width:var(--maxw); margin:0 auto; padding:14px 24px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.brand{
+  font-family:'IBM Plex Mono', monospace;
+  font-weight:600; font-size:1.15rem; letter-spacing:.02em;
+  display:flex; align-items:center; gap:8px; text-decoration:none;
+  background:none; border:none; color:inherit; cursor:pointer; padding:0;
+}
+.brand .dot{color:var(--accent);}
+.nav-links{
+  display:flex; gap:6px; list-style:none; margin:0; padding:0;
+}
+.nav-link{
+  font-family:'Space Grotesk', sans-serif;
+  text-decoration:none; font-size:.95rem; font-weight:500;
+  color:var(--chalk-white); opacity:.78; background:none; border:none; cursor:pointer;
+  padding:8px 12px; border-radius:8px; border-bottom:2px solid transparent;
+  transition:opacity .2s, border-color .2s, background .2s;
+}
+.nav-link:hover{opacity:1;}
+.nav-link.active{opacity:1; border-color:var(--accent); background:rgba(255,209,102,.08);}
+.nav-toggle{
+  display:none; background:none; border:1px solid rgba(244,241,232,.3);
+  border-radius:8px; width:40px; height:36px; cursor:pointer;
+  color:var(--chalk-white); font-size:1.2rem;
+}
 
-  /* ---------- Ripple micro-interaction ---------- */
-  .btn, .kids-choice, .kids-play-btn, .kids-reset-btn, .reveal-btn{position:relative;overflow:hidden;}
-  .ripple-fx{
-    position:absolute;border-radius:50%;
-    background:rgba(255,255,255,0.4);
-    transform:scale(0);
-    opacity:1;
-    pointer-events:none;
-    animation:rippleAnim 0.55s ease-out forwards;
-  }
-  @keyframes rippleAnim{ to{transform:scale(2.6);opacity:0;} }
+/* ---------- PAGES ---------- */
+.page{display:none;}
+.page.active{display:block; animation:pageIn .5s ease;}
+@keyframes pageIn{ from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);} }
+section.section{scroll-margin-top:74px;}
 
-  /* ---------- Scroll-reveal for cards ---------- */
-  .card, .kids-card{
-    opacity:0;
-    transform:translateY(18px);
-    transition:opacity 0.55s ease, transform 0.55s ease;
-  }
-  .card.revealed, .kids-card.revealed{opacity:1;transform:translateY(0);}
+/* ---------- BUTTONS ---------- */
+.btn{
+  position:relative; overflow:hidden;
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:.95rem;
+  padding:13px 24px; border-radius:999px; border:2px solid transparent;
+  cursor:pointer; text-decoration:none; transition:transform .15s ease, box-shadow .2s ease;
+}
+.btn:active{transform:scale(.97);}
+.btn:disabled{opacity:.45; cursor:not-allowed; transform:none !important; box-shadow:none !important;}
+.btn-primary{background:var(--accent); color:var(--accent-ink);}
+.btn-primary:hover:not(:disabled){box-shadow:0 8px 22px rgba(255,209,102,.35); transform:translateY(-2px);}
+.btn-outline{border-color:rgba(244,241,232,.4); color:var(--chalk-white); background:transparent;}
+.btn-outline:hover:not(:disabled){border-color:var(--chalk-white); transform:translateY(-2px);}
+.btn-dark{background:var(--ink); color:var(--paper);}
+.btn-dark:hover:not(:disabled){transform:translateY(-2px); box-shadow:0 8px 22px rgba(0,0,0,.3);}
+.btn-small{padding:9px 16px; font-size:.85rem;}
+.ripple{
+  position:absolute; border-radius:50%; background:rgba(255,255,255,.5);
+  transform:scale(0); animation:ripple .55s ease-out forwards; pointer-events:none;
+}
+@keyframes ripple{ to{ transform:scale(3); opacity:0; } }
 
-  /* ---------- Pop-in for dynamic messages ---------- */
-  @keyframes popIn{0%{transform:scale(0.85);opacity:0;}100%{transform:scale(1);opacity:1;}}
-  .pop-in{animation:popIn 0.32s cubic-bezier(.34,1.56,.64,1);}
+/* ---------- HERO ---------- */
+.hero{padding:56px 0 60px; position:relative;}
+.hero-grid{display:grid; grid-template-columns:1.1fr .9fr; gap:48px; align-items:center;}
+.eyebrow{
+  font-family:'IBM Plex Mono', monospace; text-transform:uppercase; letter-spacing:.14em;
+  font-size:.75rem; color:var(--accent); margin-bottom:14px; display:block;
+}
+.hero h1{font-size:clamp(2.1rem, 4.4vw, 3.4rem); line-height:1.06;}
+.hero h1 em{font-style:italic; color:var(--accent);}
+.hero p.lead{font-size:1.08rem; color:rgba(244,241,232,.82); max-width:46ch;}
+.hero-ctas{display:flex; gap:14px; flex-wrap:wrap; margin-top:8px;}
+.hero-visual{
+  background:var(--chalk-bg-2); border-radius:var(--radius);
+  border:1px solid rgba(244,241,232,.08);
+  padding:20px; box-shadow:var(--shadow);
+}
+.hero-visual svg{width:100%; height:auto;}
+.hero-caption{text-align:center; font-family:'IBM Plex Mono', monospace; font-size:.78rem; color:rgba(244,241,232,.55); margin-top:10px;}
+.draw-line{ stroke-dasharray: var(--len); stroke-dashoffset: var(--len); animation: draw 1s ease forwards var(--delay, 0s); }
+@keyframes draw{ to{ stroke-dashoffset:0; } }
+.fade-in-block{ opacity:0; animation: fadeUp .6s ease forwards .1s; }
+@keyframes fadeUp{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
-  main{max-width:1100px;margin:0 auto;padding:48px 24px 100px;}
-  section.topic{display:none;}
-  section.topic.active{display:block;animation:fadein 0.35s ease;}
-  @keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.mini-cards{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:56px;}
+.mini-card{
+  background:var(--chalk-bg-2); border:1px solid rgba(244,241,232,.08); border-radius:14px;
+  padding:20px; cursor:pointer; transition:transform .2s ease, border-color .2s ease;
+}
+.mini-card:hover{transform:translateY(-4px); border-color:rgba(255,209,102,.4);}
+.mini-card .mc-icon{font-size:1.4rem; margin-bottom:8px;}
+.mini-card h3{font-size:1.02rem; margin-bottom:4px;}
+.mini-card p{font-size:.86rem; color:rgba(244,241,232,.65); margin:0;}
 
-  .topic-head{margin-bottom:32px;}
-  .topic-head h2{font-size:clamp(24px,3.2vw,32px);}
-  .topic-head p{color:var(--muted);max-width:700px;margin-top:10px;}
-  .family-chip{
-    display:inline-flex;align-items:center;gap:7px;
-    font-family:'JetBrains Mono',monospace;
-    font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
-    padding:4px 10px;border-radius:20px;
-    margin-bottom:14px;
-    border:1px solid;
-  }
-  .family-chip::before{content:"";width:6px;height:6px;border-radius:50%;}
-  .family-chip.rectilineo{color:var(--phosphor);border-color:var(--phosphor-dim);background:rgba(127,231,196,0.06);}
-  .family-chip.rectilineo::before{background:var(--phosphor);}
-  .family-chip.circular{color:var(--blue);border-color:rgba(110,168,254,0.4);background:rgba(110,168,254,0.06);}
-  .family-chip.circular::before{background:var(--blue);}
-  .family-chip.plano{color:var(--amber);border-color:rgba(255,180,84,0.4);background:rgba(255,180,84,0.06);}
-  .family-chip.plano::before{background:var(--amber);}
-  .static-note{
-    font-family:'JetBrains Mono',monospace;
-    font-size:12.5px;color:var(--muted);
-    background:var(--bg-panel-alt);
-    border:1px dashed var(--hair);
-    border-radius:6px;
-    padding:9px 12px;
-  }
+/* ---------- SECTION HEAD ---------- */
+.section{padding:56px 0 78px;}
+.section-head{max-width:60ch; margin-bottom:40px;}
+.section-head .eyebrow{color:var(--accent);}
+.section-head h2{font-size:clamp(1.6rem,3vw,2.3rem);}
+.section-head p{color:rgba(244,241,232,.75);}
+.section-alt{background:var(--chalk-bg-2);}
+.page-teoria .section, .page-examen .section{padding-top:44px;}
 
-  .card{
-    background:var(--bg-panel);
-    border:1px solid var(--hair);
-    border-radius:10px;
-    padding:24px;
-    margin-bottom:24px;
-  }
-  .card h3{font-size:17px;margin-bottom:14px;color:var(--text);}
-  .card h3 .tag{
-    font-family:'JetBrains Mono',monospace;
-    font-size:11px;
-    color:var(--phosphor);
-    border:1px solid var(--phosphor-dim);
-    padding:2px 8px;
-    border-radius:20px;
-    margin-right:10px;
-    text-transform:uppercase;
-    letter-spacing:0.06em;
-  }
+.reveal{opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease;}
+.reveal.in-view{opacity:1; transform:translateY(0);}
 
-  /* formula card */
-  .formula-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:14px;
-  }
-  .formula-box{
-    background:
-      linear-gradient(var(--grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
-      var(--bg-input);
-    background-size:14px 14px;
-    border:1px solid var(--hair);
-    border-radius:8px;
-    padding:16px;
-    transition:transform 0.15s ease, border-color 0.15s ease;
-  }
-  .formula-box:hover{transform:translateY(-3px);border-color:var(--phosphor-dim);}
-  .formula-box .label{font-size:12px;color:var(--muted);margin-bottom:8px;}
-  .formula-box .expr{font-family:'JetBrains Mono',monospace;font-size:17px;color:var(--phosphor);font-weight:600;}
+/* ---------- THEORY ---------- */
+.theory-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+.theory-card{background:var(--paper); color:var(--ink); border-radius:16px; overflow:hidden; cursor:pointer; box-shadow:0 10px 26px rgba(0,0,0,.25); transition:transform .2s ease;}
+.theory-card:hover{transform:translateY(-4px);}
+.theory-head{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 20px;}
+.theory-head h3{font-size:1.05rem; margin:0;}
+.theory-head .plus{font-family:'IBM Plex Mono',monospace; font-size:1.2rem; color:#8a7a4a; transition:transform .25s ease;}
+.theory-card.open .plus{transform:rotate(45deg);}
+.theory-body{max-height:0; overflow:hidden; transition:max-height .3s ease;}
+.theory-body-inner{padding:0 20px 20px; border-top:1px dashed rgba(30,42,34,.2);}
+.formula{font-family:'IBM Plex Mono', monospace; font-size:1.1rem; font-weight:600; background:var(--paper-2); display:inline-block; padding:8px 14px; border-radius:8px; margin:12px 0 8px;}
+.theory-body p{font-size:.92rem; color:#4a4132; margin:0;}
 
-  /* simulation layout */
-  .sim-layout{
-    display:grid;
-    grid-template-columns:1.4fr 1fr;
-    gap:20px;
-  }
-  @media (max-width:820px){.sim-layout{grid-template-columns:1fr;}}
-  .sim-stage{
-    background:
-      linear-gradient(var(--grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
-      var(--bg-input);
-    background-size:20px 20px;
-    border-radius:8px;
-    border:1px solid var(--hair);
-    padding:10px;
-  }
-  canvas{display:block;width:100%;height:auto;border-radius:4px;}
-  .controls{display:flex;flex-direction:column;gap:16px;}
-  .control-row{display:flex;flex-direction:column;gap:6px;}
-  .control-row label{
-    font-size:12px;color:var(--muted);
-    display:flex;justify-content:space-between;
-    font-family:'JetBrains Mono',monospace;
-  }
-  .control-row label b{color:var(--amber);font-weight:600;}
-  input[type=range]{
-    -webkit-appearance:none;
-    width:100%;height:4px;border-radius:2px;
-    background:var(--bg-panel-alt);
-    outline:none;
-  }
-  input[type=range]::-webkit-slider-thumb{
-    -webkit-appearance:none;
-    width:16px;height:16px;border-radius:50%;
-    background:var(--phosphor);
-    cursor:pointer;
-    box-shadow:0 0 0 3px rgba(127,231,196,0.18);
-  }
-  select{
-    background:var(--bg-panel-alt);
-    color:var(--text);
-    border:1px solid var(--hair);
-    border-radius:6px;
-    padding:8px 10px;
-    font-family:'JetBrains Mono',monospace;
-    font-size:13px;
-  }
-  .btn-row{display:flex;gap:8px;margin-top:4px;}
-  button.btn{
-    background:var(--bg-panel-alt);
-    border:1px solid var(--hair);
-    color:var(--text);
-    padding:9px 14px;
-    border-radius:6px;
-    font-family:'JetBrains Mono',monospace;
-    font-size:12.5px;
-    cursor:pointer;
-    transition:border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
-  }
-  button.btn:hover{border-color:var(--phosphor-dim);color:var(--phosphor);}
-  button.btn:active{transform:scale(0.95);}
-  button.btn.primary{
-    background:var(--phosphor);
-    color:#062018;
-    border-color:var(--phosphor);
-    font-weight:600;
-  }
-  button.btn.primary:hover{opacity:0.9;color:#062018;}
+/* ---------- SIM / EXAM PANELS ---------- */
+.panel{background:var(--paper); color:var(--ink); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px;}
+.sim-layout{display:grid; grid-template-columns:1.3fr 1fr; gap:22px; align-items:start;}
+canvas.dcl-canvas{
+  width:100%; height:360px; display:block; border-radius:14px;
+  background:
+    linear-gradient(rgba(30,42,34,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30,42,34,.06) 1px, transparent 1px),
+    var(--paper-2);
+  background-size:24px 24px; touch-action:none; cursor:grab;
+}
+.canvas-hint{font-family:'IBM Plex Mono', monospace; font-size:.75rem; color:#6b6250; margin-top:8px; text-align:center;}
+.force-form{display:grid; grid-template-columns:1.3fr .8fr .8fr auto; gap:8px; margin-bottom:14px;}
+.force-form select, .force-form input{
+  font-family:'Space Grotesk',sans-serif; font-size:.88rem;
+  border:1px solid rgba(30,42,34,.25); border-radius:8px; padding:9px 10px;
+  background:#fff; color:var(--ink); width:100%;
+}
+.force-form label{font-size:.68rem; font-family:'IBM Plex Mono',monospace; text-transform:uppercase; color:#6b6250; display:block; margin-bottom:4px;}
+.force-list{list-style:none; margin:0 0 14px; padding:0; display:flex; flex-direction:column; gap:6px; max-height:150px; overflow:auto;}
+.force-list li{display:flex; align-items:center; gap:10px; background:var(--paper-2); border-radius:8px; padding:7px 10px; font-size:.85rem;}
+.force-list .dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+.force-list .fl-text{flex:1;}
+.force-list button{border:none; background:transparent; color:#a33; cursor:pointer; font-size:1rem; line-height:1; padding:2px 6px; border-radius:6px;}
+.force-list button:hover{background:rgba(170,51,51,.12);}
+.empty-hint{font-size:.85rem; color:#8a8064; padding:8px 0;}
+.resultant{font-family:'IBM Plex Mono', monospace; font-size:.9rem; background:var(--ink); color:var(--paper); border-radius:10px; padding:12px 14px;}
+.resultant .ok{color:#8CE99A; font-weight:600;}
+.resultant .warn{color:#FFD166; font-weight:600;}
+.resultant .muted{color:rgba(246,241,227,.55);}
+.btn-row{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;}
 
-  .readout{
-    margin-top:14px;
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:10px;
-  }
-  .readout .cell{
-    background:var(--bg-panel-alt);
-    border:1px solid var(--hair);
-    border-radius:6px;
-    padding:10px 12px;
-    text-align:center;
-    transition:transform 0.15s ease;
-  }
-  .readout .cell:hover{transform:translateY(-2px);}
-  .readout .cell .k{font-size:10.5px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;}
-  .readout .cell .v{font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--phosphor);margin-top:4px;text-shadow:0 0 12px rgba(127,231,196,0.25);}
+/* ---------- EXAM ---------- */
+.exam-view{display:none;}
+.exam-view.show{display:block;}
+.exam-intro-panel{max-width:640px; margin:0 auto; text-align:center;}
+.exam-rules{text-align:left; background:var(--paper-2); border-radius:12px; padding:16px 18px; margin:18px 0; font-size:.88rem;}
+.exam-rules li{margin-bottom:6px;}
+.ex-topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px;}
+.score-chip{font-family:'IBM Plex Mono', monospace; font-size:.82rem; background:var(--chalk-bg-2); border:1px solid rgba(244,241,232,.15); padding:8px 14px; border-radius:999px;}
+.ex-header{display:flex; justify-content:flex-start; align-items:flex-start; gap:14px; margin-bottom:6px;}
+.ex-icon-badge{
+  font-size:1.8rem; background:var(--paper-2); border-radius:14px; width:56px; height:56px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  animation:iconBounce .5s ease;
+}
+@keyframes iconBounce{ 0%{transform:scale(.4) rotate(-8deg); opacity:0;} 60%{transform:scale(1.12) rotate(4deg);} 100%{transform:scale(1) rotate(0); opacity:1;} }
+.tip-box{
+  background:linear-gradient(135deg, rgba(255,209,102,.25), rgba(255,209,102,.08));
+  border:1px dashed #c9a227; border-radius:12px; padding:12px 14px; margin-bottom:18px;
+  font-size:.88rem; color:#5a4712; animation:fadeUp .5s ease .1s both;
+}
+.progress-bar-track{
+  height:6px; background:rgba(244,241,232,.12); border-radius:999px; overflow:hidden; margin-bottom:22px;
+}
+.progress-bar-fill{
+  height:100%; width:0%; background:var(--accent); border-radius:999px;
+  transition:width .5s cubic-bezier(.4,0,.2,1);
+}
+.ex-counter{font-family:'IBM Plex Mono',monospace; font-size:.75rem; color:#8a8064; text-transform:uppercase; letter-spacing:.08em;}
+.ex-statement{font-size:1.02rem; margin-bottom:14px;}
+.given-table{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-bottom:18px;}
+.given-row{background:var(--paper-2); border-radius:8px; padding:8px 12px; font-size:.85rem; display:flex; justify-content:space-between; gap:8px;}
+.given-row strong{font-family:'IBM Plex Mono',monospace;}
+.ex-dots{display:flex; gap:6px; justify-content:center; margin-top:18px;}
+.ex-dots span{width:9px; height:9px; border-radius:50%; background:rgba(30,42,34,.18); display:inline-block;}
+.ex-dots span.answered{background:#8a8064;}
+.ex-dots span.current{background:var(--ink); transform:scale(1.2);}
 
-  .graphs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
-  @media (max-width:560px){.graphs{grid-template-columns:1fr;}}
-  .graph-box{
-    background:var(--bg-input);
-    border:1px solid var(--hair);
-    border-radius:6px;
-    padding:8px;
-  }
-  .graph-box .glabel{font-size:11px;color:var(--muted);margin-bottom:4px;font-family:'JetBrains Mono',monospace;}
+/* ---------- RESULTS / CARTILLA ---------- */
+.results-head{display:flex; align-items:center; gap:24px; flex-wrap:wrap; margin-bottom:26px;}
+.score-badge{
+  width:110px; height:110px; border-radius:50%; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; flex-direction:column;
+  font-family:'IBM Plex Mono',monospace; border:4px solid var(--ink);
+}
+.score-badge .num{font-size:1.7rem; font-weight:700; line-height:1;}
+.score-badge .pct{font-size:.7rem;}
+.score-badge.good{border-color:var(--good); color:var(--good);}
+.score-badge.bad{border-color:var(--bad); color:#c0392b;}
+.results-verdict h3{margin-bottom:4px;}
+.q-result{background:var(--paper-2); border-radius:12px; padding:16px 18px; margin-bottom:12px;}
+.q-result-head{display:flex; justify-content:space-between; gap:12px; margin-bottom:8px; font-weight:600;}
+.q-result ul{margin:0; padding-left:18px; font-size:.85rem;}
+.q-result .fb-status{font-weight:700;}
+.status-ok{color:#2f9e58;}
+.status-warn{color:#a6790f;}
+.status-missing{color:#b23b3b;}
+.status-extra{color:#7a5a17;}
+.locked-note{
+  font-size:.85rem; background:rgba(255,107,107,.12); border:1px solid rgba(255,107,107,.35);
+  padding:10px 14px; border-radius:10px; margin-bottom:20px;
+}
 
-  /* worked example */
-  .steps{display:flex;flex-direction:column;gap:10px;margin-top:8px;}
-  .step{
-    display:grid;
-    grid-template-columns:28px 1fr;
-    gap:12px;
-    align-items:start;
-  }
-  .step .idx{
-    width:28px;height:28px;border-radius:50%;
-    background:var(--bg-panel-alt);
-    border:1px solid var(--phosphor-dim);
-    color:var(--phosphor);
-    font-family:'JetBrains Mono',monospace;
-    font-size:12px;
-    display:flex;align-items:center;justify-content:center;
-  }
-  .step .txt{font-size:14.5px;color:var(--text);}
-  .step .txt .calc{color:var(--phosphor);font-family:'JetBrains Mono',monospace;}
-  .step .txt small{color:var(--muted);display:block;margin-top:2px;}
+/* ---------- FOOTER ---------- */
+footer{padding:40px 0 60px; text-align:center; color:rgba(244,241,232,.5); font-size:.85rem;}
+footer .brand{justify-content:center; margin-bottom:10px; opacity:.9; cursor:default;}
 
-  /* practice problems */
-  .problem{
-    border:1px solid var(--hair);
-    border-radius:8px;
-    padding:16px 18px;
-    margin-bottom:12px;
-    background:var(--bg-panel-alt);
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:860px){
+  .hero-grid{grid-template-columns:1fr;}
+  .theory-grid{grid-template-columns:1fr 1fr;}
+  .sim-layout{grid-template-columns:1fr;}
+  .mini-cards{grid-template-columns:1fr;}
+}
+@media (max-width:640px){
+  .nav-links{
+    position:absolute; top:100%; left:0; right:0; background:var(--chalk-bg);
+    flex-direction:column; gap:0; border-bottom:1px solid rgba(244,241,232,.1);
+    max-height:0; overflow:hidden; transition:max-height .3s ease; padding:0 24px;
   }
-  .problem .q{font-size:14.5px;}
-  .problem .reveal-btn{
-    margin-top:10px;
-    background:none;
-    border:1px dashed var(--phosphor-dim);
-    color:var(--phosphor);
-    font-family:'JetBrains Mono',monospace;
-    font-size:12px;
-    padding:6px 12px;
-    border-radius:20px;
-    cursor:pointer;
-  }
-  .problem .answer{
-    max-height:0;
-    opacity:0;
-    overflow:hidden;
-    margin-top:0;
-    padding-top:0;
-    border-top:0 solid transparent;
-    font-size:14px;
-    color:var(--muted);
-    transition:max-height 0.45s ease, opacity 0.4s ease, margin-top 0.4s ease, padding-top 0.4s ease;
-  }
-  .problem .answer .final{color:var(--phosphor);font-family:'JetBrains Mono',monospace;}
-  .problem.open .answer{
-    max-height:400px;
-    opacity:1;
-    margin-top:12px;
-    padding-top:12px;
-    border-top:1px solid var(--hair);
-  }
-
-  footer{
-    max-width:1100px;margin:0 auto;padding:0 24px 60px;
-    color:var(--muted);font-size:13px;
-  }
-  footer .line{border-top:1px solid var(--hair);margin-bottom:24px;}
-
-  /* ---------- Kids mode ---------- */
-  .tab-btn.kids-tab-btn.active{color:#ffb454;border-bottom-color:#ffb454;}
-  .kids-wrap{
-    background:linear-gradient(180deg,#fff8e6 0%, #ffedc2 100%);
-    border-radius:22px;
-    padding:32px;
-    border:2px dashed rgba(224,121,31,0.35);
-  }
-  .kids-wrap .topic-head p{color:#8a6a3a;}
-  .kids-badge{
-    display:inline-block;
-    font-family:'Space Grotesk',sans-serif;
-    font-weight:700;
-    font-size:12px;
-    letter-spacing:0.04em;
-    color:#8a4b0a;
-    background:#ffe1a3;
-    border:1px solid rgba(224,121,31,0.4);
-    border-radius:20px;
-    padding:5px 14px;
-    margin-bottom:14px;
-  }
-  .kids-wrap h2{color:#5b3a1a;font-size:clamp(22px,3vw,30px);}
-  .kids-card{
-    background:#fffdf8;
-    border:2px solid rgba(224,121,31,0.25);
-    border-radius:18px;
-    padding:22px;
-    margin-bottom:22px;
-    box-shadow:0 6px 18px rgba(180,120,40,0.08);
-  }
-  .kids-card h3{
-    color:#5b3a1a;
-    font-size:19px;
-    margin-bottom:8px;
-    display:flex;align-items:center;gap:8px;
-  }
-  .kids-card > p{color:#8a6a3a;font-size:15.5px;margin-bottom:6px;}
-  .kids-stage{
-    background:linear-gradient(180deg,#bfe4ff 0%, #eaf7ff 100%);
-    border-radius:14px;
-    border:2px solid rgba(224,121,31,0.2);
-    padding:8px;
-    margin-top:14px;
-  }
-  .kids-btn-row{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;}
-  .kids-choice{
-    background:#fff;
-    border:2px solid rgba(224,121,31,0.4);
-    border-radius:16px;
-    padding:12px 18px;
-    font-family:'Space Grotesk',sans-serif;
-    font-weight:600;
-    font-size:15px;
-    color:#8a5a1e;
-    cursor:pointer;
-    transition:transform 0.12s ease, background 0.12s ease;
-  }
-  .kids-choice:hover{transform:translateY(-2px);}
-  .kids-choice:active{transform:scale(0.95);}
-  .kids-choice.active{background:#ffb454;color:#442a08;border-color:#e0791f;}
-  .kids-play-row{display:flex;gap:10px;margin-top:6px;}
-  .kids-play-btn{
-    background:#4dbf82;
-    border:none;color:#fff;
-    font-family:'Space Grotesk',sans-serif;
-    font-weight:700;font-size:15px;
-    padding:12px 20px;border-radius:16px;cursor:pointer;
-    transition:transform 0.1s ease, box-shadow 0.15s ease;
-    box-shadow:0 3px 0 #328a5c;
-  }
-  .kids-play-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #328a5c;}
-  .kids-reset-btn{
-    background:#fff;border:2px solid rgba(224,121,31,0.4);
-    color:#8a5a1e;font-family:'Space Grotesk',sans-serif;font-weight:600;
-    font-size:15px;padding:11px 18px;border-radius:16px;cursor:pointer;
-    transition:transform 0.1s ease;
-  }
-  .kids-reset-btn:active{transform:scale(0.95);}
-  .kids-readout{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;}
-  .kids-readout .kcell{
-    background:#fff3d6;border-radius:14px;padding:10px 18px;
-    font-family:'Space Grotesk',sans-serif;font-weight:700;
-    color:#8a5a1e;font-size:16px;
-  }
-  .kids-msg{
-    margin-top:14px;font-family:'Space Grotesk',sans-serif;
-    font-weight:700;font-size:16px;color:#3a8a5a;
-    min-height:24px;
-  }
-  .kids-quiz-q{font-size:16px;color:#5b3a1a;font-weight:600;margin-bottom:12px;}
-  .kids-quiz-feedback{margin-top:12px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;min-height:22px;}
-
-  /* ---------- Assistant ---------- */
-  .asst-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  @media (max-width:700px){.asst-grid{grid-template-columns:1fr;}}
-  .asst-field{display:flex;flex-direction:column;gap:6px;}
-  .asst-field label{font-size:12.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
-  .asst-field input{
-    background:var(--bg-input);
-    border:1px solid var(--hair);
-    border-radius:6px;
-    padding:10px 12px;
-    color:var(--text);
-    font-family:'JetBrains Mono',monospace;
-    font-size:14px;
-  }
-  .asst-field input:focus{outline:none;border-color:var(--phosphor-dim);}
-  .asst-field.hidden{display:none;}
-  .asst-error{
-    color:var(--danger);
-    font-family:'JetBrains Mono',monospace;
-    font-size:13px;
-    min-height:18px;
-    margin-top:8px;
-  }
-  .asst-results{
-    display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;
-  }
-  .asst-results .rcell{
-    background:var(--bg-panel-alt);
-    border:1px solid var(--phosphor-dim);
-    border-radius:8px;
-    padding:10px 16px;
-    font-family:'JetBrains Mono',monospace;
-    font-size:14px;
-    transition:transform 0.15s ease;
-  }
-  .asst-results .rcell:hover{transform:translateY(-2px);}
-  .asst-results .rcell .rk{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:4px;}
-  .asst-results .rcell .rv{color:var(--phosphor);font-weight:600;font-size:16px;}
+  .nav-links.open{max-height:320px; padding:6px 24px 14px;}
+  .nav-link{display:block; width:100%; text-align:left; border-radius:8px;}
+  .nav-toggle{display:block;}
+  .theory-grid{grid-template-columns:1fr;}
+  .force-form{grid-template-columns:1fr 1fr;}
+  .force-form button{grid-column:span 2;}
+  .section{padding:40px 0 56px;}
+  canvas.dcl-canvas{height:300px;}
+  .results-head{flex-direction:column; text-align:center;}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important;}
+}
 </style>
 </head>
 <body>
 
-<div id="boot-screen">
-  <div class="boot-logo"><span class="dot"></span>YISMA <span>LAB</span></div>
-  <div class="boot-bar"><div class="boot-fill"></div></div>
-  <div class="boot-sub">iniciando laboratorio de cinemática…</div>
-</div>
-
-
-<header class="hero">
-  <span class="hero-cloud c1">☁️</span>
-  <span class="hero-cloud c2">☁️</span>
-  <span class="hero-cloud c3">☁️</span>
-  <div class="eyebrow">Yisma Lab · señal en vivo</div>
-  <h1 class="title">Yisma Lab <span>· cómo se mueven las cosas: MRU, MRUV, caída libre, MCU, MCV y tiro parabólico</span></h1>
-  <p class="subtitle">Teoría, fórmulas, ejemplos resueltos paso a paso, ejercicios propuestos con solución oculta, y una simulación interactiva independiente para cada tipo de movimiento — separadas para que sea fácil reconocer cuál es cuál.</p>
-  <div class="hero-readout">
-    <span><b>07</b> módulos</span>
-    <span><b>15</b> ejemplos resueltos</span>
-    <span><b>22</b> ejercicios propuestos</span>
-    <span><b>07</b> simulaciones interactivas</span>
-  </div>
-</header>
-
-<nav class="tabs">
-  <div class="tabs-inner">
-    <button class="tab-btn active visited" data-tab="mru"><span class="num">01</span>🚗 MRU<span class="tab-visited-dot"></span></button>
-    <button class="tab-btn" data-tab="mruv"><span class="num">02</span>🏎️ MRUV<span class="tab-visited-dot"></span></button>
-    <button class="tab-btn" data-tab="caida"><span class="num">03</span>🪨 Caída libre<span class="tab-visited-dot"></span></button>
-    <button class="tab-btn" data-tab="lanzamiento"><span class="num">04</span>🏐 Lanz. vertical<span class="tab-visited-dot"></span></button>
-    <button class="tab-btn" data-tab="mcu"><span class="num">05</span>🎠 MCU<span class="tab-visited-dot"></span></button>
-    <button class="tab-btn" data-tab="mcv"><span class="num">06</span>🌀 MCV<span class="tab-visited-dot"></span></button>
-    <button class="tab-btn" data-tab="parabolico"><span class="num">07</span>⚽ Parabólico<span class="tab-visited-dot"></span></button>
-    <button class="tab-btn kids-tab-btn" data-tab="ninos"><span class="num">08</span>🧒 Para niños<span class="tab-visited-dot"></span></button>
-    <button class="tab-btn" data-tab="asistente"><span class="num">09</span>🧭 Asistente<span class="tab-visited-dot"></span></button>
+<nav class="navbar">
+  <div class="nav-inner">
+    <button class="brand" data-page="inicio"><span class="dot">◆</span>DCL<span class="dot">·</span>Lab</button>
+    <ul class="nav-links" id="navLinks">
+      <li><button class="nav-link" data-page="inicio">Inicio</button></li>
+      <li><button class="nav-link" data-page="teoria">Teoría</button></li>
+      <li><button class="nav-link" data-page="simulador">Simulador</button></li>
+      <li><button class="nav-link" data-page="examen">Examen</button></li>
+    </ul>
+    <button class="nav-toggle" id="navToggle" aria-label="Abrir menú">☰</button>
   </div>
 </nav>
 
 <main>
 
-  <!-- ================= MRU ================= -->
-  <section class="topic active" id="topic-mru">
-    <div class="topic-head">
-      <div class="family-chip rectilineo">🚗 Familia · movimiento rectilíneo</div>
-      <h2>Movimiento Rectilíneo Uniforme (MRU)</h2>
-      <p>Un objeto se mueve en línea recta con <b>velocidad constante</b>: recorre distancias iguales en tiempos iguales. No hay aceleración (a = 0).</p>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Fórmulas</span>Ecuaciones del MRU</h3>
-      <div class="formula-grid">
-        <div class="formula-box"><div class="label">Posición en función del tiempo</div><div class="expr">x(t) = x₀ + v·t</div></div>
-        <div class="formula-box"><div class="label">Velocidad</div><div class="expr">v = Δx / Δt  (constante)</div></div>
-        <div class="formula-box"><div class="label">Aceleración</div><div class="expr">a = 0</div></div>
+<!-- ===================== PÁGINA: INICIO ===================== -->
+<section class="page active" id="page-inicio">
+  <header class="hero chalk-texture">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="eyebrow">Física · Mecánica newtoniana</span>
+        <h1>Aprende a <em>leer</em> las fuerzas de cualquier cuerpo.</h1>
+        <p class="lead">Un espacio para entender, construir y practicar Diagramas de Cuerpo Libre: la teoría justa, un simulador para experimentar y un examen de un solo intento con cartilla de resultados descargable.</p>
+        <div class="hero-ctas">
+          <button class="btn btn-primary" data-page="simulador">Ir al simulador</button>
+          <button class="btn btn-outline" data-page="teoria">Ver la teoría</button>
+        </div>
+      </div>
+      <div class="hero-visual fade-in-block">
+        <svg viewBox="0 0 300 260" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="mk-peso" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" fill="#FF6B6B"/></marker>
+            <marker id="mk-normal" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" fill="#4ECDC4"/></marker>
+            <marker id="mk-aplicada" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" fill="#FFD166"/></marker>
+          </defs>
+          <g opacity="0.35">
+            <line x1="0" y1="60" x2="300" y2="60" stroke="#F4F1E8" stroke-width="1"/>
+            <line x1="0" y1="120" x2="300" y2="120" stroke="#F4F1E8" stroke-width="1"/>
+            <line x1="0" y1="180" x2="300" y2="180" stroke="#F4F1E8" stroke-width="1"/>
+          </g>
+          <rect x="130" y="120" width="40" height="40" rx="4" fill="#F4F1E8" opacity="0.9"/>
+          <text x="150" y="145" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#16241C">m</text>
+          <line x1="150" y1="160" x2="150" y2="220" stroke="#FF6B6B" stroke-width="3" marker-end="url(#mk-peso)" class="draw-line" style="--len:60; --delay:.2s"/>
+          <text x="158" y="215" font-family="IBM Plex Mono" font-size="12" fill="#FF6B6B">W</text>
+          <line x1="150" y1="120" x2="150" y2="75" stroke="#4ECDC4" stroke-width="3" marker-end="url(#mk-normal)" class="draw-line" style="--len:45; --delay:.5s"/>
+          <text x="158" y="80" font-family="IBM Plex Mono" font-size="12" fill="#4ECDC4">N</text>
+          <line x1="170" y1="140" x2="230" y2="140" stroke="#FFD166" stroke-width="3" marker-end="url(#mk-aplicada)" class="draw-line" style="--len:60; --delay:.8s"/>
+          <text x="195" y="132" font-family="IBM Plex Mono" font-size="12" fill="#FFD166">F</text>
+        </svg>
+        <p class="hero-caption">un cuerpo, tres fuerzas — así empieza todo DCL</p>
       </div>
     </div>
-
-    <div class="card">
-      <h3><span class="tag">Simulación</span>Móvil a velocidad constante</h3>
-      <div class="sim-layout">
-        <div class="sim-stage">
-          <canvas id="mru-canvas" width="640" height="200"></canvas>
+    <div class="wrap">
+      <div class="mini-cards">
+        <div class="mini-card" data-page="teoria">
+          <div class="mc-icon">📖</div>
+          <h3>Teoría</h3>
+          <p>Las fórmulas esenciales de equilibrio y fuerzas, en tarjetas cortas.</p>
         </div>
-        <div class="controls">
-          <div class="control-row">
-            <label>Posición inicial x₀ <b id="mru-x0-val">0 m</b></label>
-            <input type="range" id="mru-x0" min="-40" max="40" step="1" value="0">
+        <div class="mini-card" data-page="simulador">
+          <div class="mc-icon">🧲</div>
+          <h3>Simulador</h3>
+          <p>Practica sin límites: agrega y arrastra fuerzas, mira la resultante en vivo.</p>
+        </div>
+        <div class="mini-card" data-page="examen">
+          <div class="mc-icon">📝</div>
+          <h3>Examen</h3>
+          <p>8 problemas, un solo intento. Al final obtienes tu cartilla de resultados.</p>
+        </div>
+      </div>
+    </div>
+  </header>
+</section>
+
+<!-- ===================== PÁGINA: TEORÍA ===================== -->
+<section class="page" id="page-teoria">
+  <div class="section page-teoria">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Fundamentos</span>
+        <h2>La teoría, en fórmulas</h2>
+        <p>Seis ideas cubren la mayoría de los problemas de equilibrio y dinámica de un solo cuerpo. Toca cada tarjeta para expandirla.</p>
+      </div>
+      <div class="theory-grid" id="theoryGrid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PÁGINA: SIMULADOR ===================== -->
+<section class="page" id="page-simulador">
+  <div class="section section-alt chalk-texture">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">Práctica libre</span>
+        <h2>Simulador de fuerzas</h2>
+        <p>Agrega fuerzas sobre el bloque y arrastra la punta de cada flecha para cambiar su magnitud y dirección. La resultante se calcula en vivo. Aquí puedes practicar todas las veces que quieras.</p>
+      </div>
+      <div class="panel sim-layout reveal">
+        <div>
+          <canvas class="dcl-canvas" id="simCanvas"></canvas>
+          <p class="canvas-hint">Arrastra la punta de una flecha para ajustarla · toca para seleccionar</p>
+        </div>
+        <div>
+          <div class="force-form" id="simForm">
+            <div><label>Fuerza</label><select id="simType"></select></div>
+            <div><label>N</label><input type="number" id="simMag" value="10" min="0.5" step="0.5"></div>
+            <div><label>Grados</label><input type="number" id="simAngle" value="90" min="0" max="360" step="1"></div>
+            <div style="display:flex; align-items:end;"><button class="btn btn-primary btn-small" id="simAdd" style="width:100%; justify-content:center;">Agregar</button></div>
           </div>
-          <div class="control-row">
-            <label>Velocidad v <b id="mru-v-val">5 m/s</b></label>
-            <input type="range" id="mru-v" min="-15" max="15" step="0.5" value="5">
-          </div>
+          <ul class="force-list" id="simList"></ul>
+          <div class="resultant" id="simResultant"></div>
           <div class="btn-row">
-            <button class="btn primary" id="mru-play">▶ Reproducir</button>
-            <button class="btn" id="mru-reset">Reiniciar</button>
-          </div>
-          <div class="readout">
-            <div class="cell"><div class="k">t</div><div class="v" id="mru-t">0.0 s</div></div>
-            <div class="cell"><div class="k">x</div><div class="v" id="mru-x">0.0 m</div></div>
-            <div class="cell"><div class="k">v</div><div class="v" id="mru-vr">5.0 m/s</div></div>
+            <button class="btn btn-outline btn-small" id="simClear">Limpiar diagrama</button>
           </div>
         </div>
       </div>
-      <div class="graphs">
-        <div class="graph-box"><div class="glabel">x – t (posición vs tiempo)</div><canvas id="mru-graph-x" width="300" height="140"></canvas></div>
-        <div class="graph-box"><div class="glabel">v – t (velocidad vs tiempo)</div><canvas id="mru-graph-v" width="300" height="140"></canvas></div>
-      </div>
     </div>
+  </div>
+</section>
 
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 1</span>Posición a partir de x₀ y v</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Un ciclista parte de la posición x₀ = 2 m y se mueve con velocidad constante de 4 m/s. ¿En qué posición estará a los 10 s?</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Identificamos los datos: <span class="calc">x₀ = 2 m, v = 4 m/s, t = 10 s</span><small>El MRU usa una sola ecuación: x(t) = x₀ + v·t</small></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Sustituimos en la fórmula: <span class="calc">x = 2 + 4(10)</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Resolvemos: <span class="calc">x = 2 + 40 = 42 m</span><small>El ciclista está a 42 m del origen a los 10 s.</small></div></div>
-      </div>
-    </div>
+<!-- ===================== PÁGINA: EXAMEN ===================== -->
+<section class="page" id="page-examen">
+  <div class="section page-examen chalk-texture">
+    <div class="wrap">
 
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 2</span>Encuentro entre dos móviles</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">El auto A sale del punto 0 m con v = 15 m/s. El auto B sale del punto 300 m moviéndose hacia A con v = 10 m/s. ¿Cuándo y dónde se encuentran?</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Planteamos la posición de cada uno: <span class="calc">x_A = 15t</span> y <span class="calc">x_B = 300 − 10t</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Se encuentran cuando x_A = x_B: <span class="calc">15t = 300 − 10t</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Despejamos t: <span class="calc">25t = 300 → t = 12 s</span></div></div>
-        <div class="step"><div class="idx">4</div><div class="txt">Calculamos la posición: <span class="calc">x_A = 15(12) = 180 m</span><small>Se encuentran a los 12 s, en la posición 180 m.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 3</span>Alcance con salida retrasada</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Un auto sale del origen con v = 20 m/s. Cinco segundos después, otro auto sale del mismo punto persiguiéndolo a 30 m/s. ¿Cuánto tarda en alcanzarlo y a qué distancia?</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Posición del primero (t medido desde que sale el primero): <span class="calc">x₁ = 20t</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Posición del segundo, que sale 5 s más tarde: <span class="calc">x₂ = 30(t − 5)</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Se alcanzan cuando x₁ = x₂: <span class="calc">20t = 30(t−5) → 20t = 30t − 150</span></div></div>
-        <div class="step"><div class="idx">4</div><div class="txt">Despejamos: <span class="calc">10t = 150 → t = 15 s</span></div></div>
-        <div class="step"><div class="idx">5</div><div class="txt">Posición del encuentro: <span class="calc">x = 20(15) = 300 m</span><small>El segundo auto lo alcanza a los 15 s, a 300 m del origen.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Practica</span>Ejercicios propuestos</h3>
-
-      <div class="problem">
-        <div class="q"><b>1.</b> Un tren viaja a una velocidad constante de 25 m/s. ¿Qué distancia recorre en 3 minutos?</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">Convertimos 3 min = 180 s. Aplicamos Δx = v·t = 25 × 180. <span class="final">Δx = 4500 m</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>2.</b> Un peatón camina 500 m en 250 s a velocidad constante. Calcula su velocidad en m/s.</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">v = Δx / Δt = 500 / 250. <span class="final">v = 2 m/s</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>3.</b> Dos amigos parten al mismo tiempo desde los extremos opuestos de un camino de 400 m, moviéndose uno hacia el otro: uno a 3 m/s y el otro a 5 m/s. ¿Cuándo y a qué distancia del primer punto se encuentran?</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">La velocidad relativa de aproximación es 3+5 = 8 m/s. t = 400/8 = 50 s. Distancia recorrida por el primero: 3 × 50 = 150 m. <span class="final">Se encuentran a los 50 s, a 150 m del primer extremo</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>4.</b> Un motociclista sale 4 s después que un ciclista, ambos desde el mismo punto. El ciclista va a 5 m/s y el motociclista a 15 m/s. ¿Cuánto tarda el motociclista en alcanzarlo y qué distancia han recorrido?</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">x_ciclista = 5t, x_moto = 15(t−4). Igualamos: 5t = 15t − 60 → 10t = 60 → t = 6 s. Distancia: 5 × 6 = 30 m. <span class="final">Lo alcanza a los 6 s, a 30 m del punto de partida</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= CAIDA LIBRE ================= -->
-  <section class="topic" id="topic-mruv">
-    <div class="topic-head">
-      <div class="family-chip rectilineo">🚗 Familia · movimiento rectilíneo</div>
-      <h2>Movimiento Rectilíneo Uniformemente Variado (MRUV)</h2>
-      <p>Ahora la velocidad <b>cambia a un ritmo constante</b>: existe una aceleración constante distinta de cero (a ≠ 0). Puede acelerar (a favor del movimiento) o frenar (en contra). La caída libre y el lanzamiento vertical, en las siguientes pestañas, son casos particulares de este movimiento.</p>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Fórmulas</span>Ecuaciones del MRUV</h3>
-      <div class="formula-grid">
-        <div class="formula-box"><div class="label">Velocidad en función del tiempo</div><div class="expr">v = v₀ + a·t</div></div>
-        <div class="formula-box"><div class="label">Posición / desplazamiento</div><div class="expr">Δx = v₀·t + ½a·t²</div></div>
-        <div class="formula-box"><div class="label">Relación sin tiempo</div><div class="expr">v² = v₀² + 2a·Δx</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Simulación</span>Móvil con aceleración constante</h3>
-      <div class="sim-layout">
-        <div class="sim-stage">
-          <canvas id="mruv-canvas" width="640" height="200"></canvas>
+      <!-- Vista 1: pantalla de inicio del examen -->
+      <div class="exam-view" id="examStartView">
+        <div class="panel exam-intro-panel reveal">
+          <span class="eyebrow">Evaluación</span>
+          <h2>Examen de Diagramas de Cuerpo Libre</h2>
+          <p>Vas a resolver <strong>8 problemas</strong> construyendo el DCL de cada uno con el mismo simulador que ya conoces.</p>
+          <ul class="exam-rules mono">
+            <li>⚠️ Tienes <strong>un solo intento</strong>. Al finalizar, no se puede repetir el examen.</li>
+            <li>Puedes moverte entre preguntas y corregir tus respuestas antes de finalizar.</li>
+            <li>No verás si acertaste hasta el final: ahí recibirás tu cartilla de resultados.</li>
+            <li>Al terminar podrás descargar la cartilla como imagen para enviarla.</li>
+          </ul>
+          <button class="btn btn-primary" id="startExamBtn">Comenzar examen</button>
         </div>
-        <div class="controls">
-          <div class="control-row">
-            <label>Velocidad inicial v₀ <b id="mruv-v0-val">0 m/s</b></label>
-            <input type="range" id="mruv-v0" min="-15" max="15" step="0.5" value="0">
+      </div>
+
+      <!-- Vista 2: examen en progreso -->
+      <div class="exam-view" id="examProgressView">
+        <div class="ex-topbar reveal">
+          <div class="section-head" style="margin-bottom:0;">
+            <span class="eyebrow">Examen en curso</span>
+            <h2 style="margin-bottom:0;">Construye el DCL</h2>
           </div>
-          <div class="control-row">
-            <label>Aceleración a <b id="mruv-a-val">3 m/s²</b></label>
-            <input type="range" id="mruv-a" min="-6" max="6" step="0.5" value="3">
+          <span class="score-chip mono" id="examLockNote">Un solo intento — sin marcha atrás al finalizar</span>
+        </div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="examProgressFill"></div></div>
+        <div class="panel reveal">
+          <div class="ex-header">
+            <div class="ex-icon-badge" id="examQIcon">🧲</div>
+            <div>
+              <span class="ex-counter" id="examQCounter">Pregunta 1 de 8</span>
+              <h3 id="examQTitle" style="margin:2px 0 0;"></h3>
+            </div>
           </div>
+          <p class="ex-statement" id="examStatement"></p>
+          <div class="tip-box" id="examTip"></div>
+          <div class="given-table" id="examGiven"></div>
+
+          <div class="sim-layout">
+            <div>
+              <canvas class="dcl-canvas" id="examCanvas"></canvas>
+              <p class="canvas-hint">Construye el DCL con las fuerzas que correspondan</p>
+            </div>
+            <div>
+              <div class="force-form" id="examForm">
+                <div><label>Fuerza</label><select id="examType"></select></div>
+                <div><label>N</label><input type="number" id="examMag" value="10" min="0.5" step="0.5"></div>
+                <div><label>Grados</label><input type="number" id="examAngle" value="90" min="0" max="360" step="1"></div>
+                <div style="display:flex; align-items:end;"><button class="btn btn-primary btn-small" id="examAdd" style="width:100%; justify-content:center;">Agregar</button></div>
+              </div>
+              <ul class="force-list" id="examList"></ul>
+              <div class="resultant" id="examResultant"></div>
+              <div class="btn-row">
+                <button class="btn btn-outline btn-small" id="examClearBtn">Limpiar</button>
+                <button class="btn btn-outline btn-small" id="examPrevBtn">← Anterior</button>
+                <button class="btn btn-primary btn-small" id="examNextBtn">Siguiente →</button>
+              </div>
+            </div>
+          </div>
+          <div class="ex-dots" id="examDots"></div>
+        </div>
+      </div>
+
+      <!-- Vista 3: resultados / cartilla -->
+      <div class="exam-view" id="examResultsView">
+        <canvas id="confettiCanvas" style="position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:200;"></canvas>
+        <div class="section-head reveal">
+          <span class="eyebrow">Resultado final</span>
+          <h2>Tu cartilla de resultados</h2>
+        </div>
+        <div class="panel reveal">
+          <div class="locked-note">🔒 Ya presentaste este examen — se guardó un solo intento en este dispositivo. No es posible repetirlo.</div>
+          <div class="results-head">
+            <div class="score-badge" id="examScoreBadge">
+              <span class="num mono" id="examScoreNum">0%</span>
+              <span class="pct mono">PUNTAJE</span>
+            </div>
+            <div class="results-verdict">
+              <h3 id="examVerdictTitle">—</h3>
+              <p id="examVerdictText" style="margin:0; color:#4a4132;"></p>
+            </div>
+          </div>
+          <div id="examResultsList"></div>
           <div class="btn-row">
-            <button class="btn primary" id="mruv-play">▶ Reproducir</button>
-            <button class="btn" id="mruv-reset">Reiniciar</button>
-          </div>
-          <div class="readout">
-            <div class="cell"><div class="k">t</div><div class="v" id="mruv-t">0.0 s</div></div>
-            <div class="cell"><div class="k">x</div><div class="v" id="mruv-x">0.0 m</div></div>
-            <div class="cell"><div class="k">v</div><div class="v" id="mruv-vr">0.0 m/s</div></div>
+            <button class="btn btn-dark btn-small" id="downloadCartillaBtn">⬇ Descargar cartilla (imagen)</button>
+            <button class="btn btn-outline btn-small" id="shareCartillaBtn" style="display:none;">Compartir</button>
+            <button class="btn btn-outline btn-small" data-page="simulador">Seguir practicando</button>
           </div>
         </div>
       </div>
-      <div class="graphs">
-        <div class="graph-box"><div class="glabel">x – t (posición vs tiempo, curva)</div><canvas id="mruv-graph-x" width="300" height="140"></canvas></div>
-        <div class="graph-box"><div class="glabel">v – t (velocidad vs tiempo, recta)</div><canvas id="mruv-graph-v" width="300" height="140"></canvas></div>
-      </div>
+
     </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 1</span>Arranque desde el reposo</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Un auto parte del reposo y acelera uniformemente a 3 m/s². ¿Qué velocidad tiene y qué distancia recorre en 6 s?</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Velocidad: <span class="calc">v = v₀ + at = 0 + 3(6)</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Resolvemos: <span class="calc">v = 18 m/s</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Distancia: <span class="calc">Δx = 0(6) + ½(3)(6²) = ½(3)(36)</span></div></div>
-        <div class="step"><div class="idx">4</div><div class="txt">Resolvemos: <span class="calc">Δx = 54 m</span><small>A los 6 s va a 18 m/s y ha recorrido 54 m.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 2</span>Frenado uniforme</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Un auto viaja a 20 m/s y frena uniformemente con a = −4 m/s². ¿Cuánto tarda en detenerse y qué distancia recorre al frenar?</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Se detiene cuando v = 0: <span class="calc">t = v₀/|a| = 20/4</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Resolvemos: <span class="calc">t = 5 s</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Distancia usando v² = v₀² + 2aΔx con v=0: <span class="calc">Δx = v₀²/(2|a|) = 400/8</span></div></div>
-        <div class="step"><div class="idx">4</div><div class="txt">Resolvemos: <span class="calc">Δx = 50 m</span><small>Tarda 5 s en detenerse y recorre 50 m frenando.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Practica</span>Ejercicios propuestos</h3>
-      <div class="problem">
-        <div class="q"><b>1.</b> Una moto parte del reposo con aceleración constante de 2.5 m/s². Calcula su velocidad y la distancia recorrida a los 8 s.</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">v = 0 + 2.5(8) = 20 m/s. Δx = ½(2.5)(8²) = ½(2.5)(64). <span class="final">v = 20 m/s, Δx = 80 m</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>2.</b> Un ciclista que va a 12 m/s frena uniformemente hasta detenerse en 4 s. Calcula la aceleración y la distancia recorrida al frenar.</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">a = (0−12)/4 = −3 m/s². Δx = v₀²/(2|a|) = 144/6. <span class="final">a = −3 m/s², Δx = 24 m</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>3.</b> Un cohete de juguete acelera desde el reposo a 6 m/s² durante 5 s. ¿Qué distancia recorrió y qué velocidad alcanzó en ese tiempo?</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">v = 0 + 6(5) = 30 m/s. Δx = ½(6)(5²) = ½(6)(25). <span class="final">v = 30 m/s, Δx = 75 m</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= CAÍDA LIBRE ================= -->
-  <section class="topic" id="topic-caida">
-    <div class="topic-head">
-      <div class="family-chip rectilineo">🚗 Familia · movimiento rectilíneo</div>
-      <h2>Caída Libre</h2>
-      <p>Caso particular del MRUV: un objeto se <b>suelta desde el reposo</b> (v₀ = 0) y cae solo por acción de la gravedad (a = −g ≈ −9.8 m/s²), sin resistencia del aire.</p>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Fórmulas</span>Ecuaciones de la caída libre (v₀ = 0)</h3>
-      <div class="formula-grid">
-        <div class="formula-box"><div class="label">Altura caída</div><div class="expr">h = ½g·t²</div></div>
-        <div class="formula-box"><div class="label">Velocidad de caída</div><div class="expr">v = g·t</div></div>
-        <div class="formula-box"><div class="label">Relación sin tiempo</div><div class="expr">v² = 2g·h</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Simulación</span>Objeto soltado desde una altura</h3>
-      <div class="sim-layout">
-        <div class="sim-stage">
-          <canvas id="fl-canvas" width="640" height="320"></canvas>
-        </div>
-        <div class="controls">
-          <div class="control-row">
-            <label>Altura inicial h₀ <b id="fl-h0-val">40 m</b></label>
-            <input type="range" id="fl-h0" min="5" max="80" step="1" value="40">
-          </div>
-          <div class="static-note">v₀ = 0 m/s — el objeto siempre se suelta desde el reposo.</div>
-          <div class="btn-row">
-            <button class="btn primary" id="fl-play">▶ Reproducir</button>
-            <button class="btn" id="fl-reset">Reiniciar</button>
-          </div>
-          <div class="readout">
-            <div class="cell"><div class="k">t</div><div class="v" id="fl-t">0.0 s</div></div>
-            <div class="cell"><div class="k">altura</div><div class="v" id="fl-y">40.0 m</div></div>
-            <div class="cell"><div class="k">v</div><div class="v" id="fl-vr">0.0 m/s</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="graphs">
-        <div class="graph-box"><div class="glabel">y – t (altura vs tiempo)</div><canvas id="fl-graph-y" width="300" height="140"></canvas></div>
-        <div class="graph-box"><div class="glabel">v – t (velocidad vs tiempo)</div><canvas id="fl-graph-v" width="300" height="140"></canvas></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 1</span>Caída desde un edificio</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Se deja caer una piedra desde un edificio de 80 m de altura (v₀ = 0). ¿Cuánto tarda en llegar al suelo y con qué velocidad llega?</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Con v₀ = 0: <span class="calc">h = ½g·t² → t = √(2h/g)</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Sustituimos: <span class="calc">t = √(2×80/9.8) = √16.33</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Resolvemos: <span class="calc">t ≈ 4.04 s</span></div></div>
-        <div class="step"><div class="idx">4</div><div class="txt">Velocidad de llegada: <span class="calc">v = g·t = 9.8 × 4.04 ≈ 39.6 m/s</span><small>La piedra tarda 4.04 s y llega a 39.6 m/s.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 2</span>Caída desde un helicóptero</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Se suelta un paquete desde un helicóptero a 200 m de altura. ¿Cuánto tiempo tarda en llegar al suelo?</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Aplicamos: <span class="calc">t = √(2h/g) = √(2×200/9.8)</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Resolvemos: <span class="calc">t = √40.8 ≈ 6.39 s</span><small>El paquete tarda aproximadamente 6.39 s en llegar al suelo.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Practica</span>Ejercicios propuestos</h3>
-      <div class="problem">
-        <div class="q"><b>1.</b> Se suelta un objeto desde 45 m de altura (v₀ = 0). ¿Cuánto tarda en caer y con qué rapidez llega al suelo?</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">t = √(2h/g) = √(90/9.8) ≈ 3.03 s. v = g·t = 9.8 × 3.03. <span class="final">t ≈ 3.03 s, v ≈ 29.7 m/s</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>2.</b> Un objeto cae libremente desde el reposo y en cierto instante su velocidad es 24.5 m/s. ¿Cuánto tiempo lleva cayendo y qué distancia ha recorrido?</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">t = v/g = 24.5/9.8 = 2.5 s. d = ½g·t² = ½ × 9.8 × 2.5² = ½ × 9.8 × 6.25. <span class="final">t = 2.5 s, d ≈ 30.6 m</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>3.</b> Una llave se cae desde un bolsillo a 1.8 m de altura sobre el suelo. ¿Cuánto tarda en llegar al piso?</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">t = √(2h/g) = √(3.6/9.8) = √0.367. <span class="final">t ≈ 0.61 s</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= LANZAMIENTO VERTICAL ================= -->
-  <section class="topic" id="topic-lanzamiento">
-    <div class="topic-head">
-      <div class="family-chip rectilineo">🚗 Familia · movimiento rectilíneo</div>
-      <h2>Lanzamiento Vertical hacia Arriba</h2>
-      <p>Otro caso particular del MRUV: un objeto se lanza <b>hacia arriba con velocidad inicial v₀ &gt; 0</b>. Sube frenando por la gravedad (a = −g), se detiene un instante en la altura máxima, y luego cae de regreso.</p>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Fórmulas</span>Ecuaciones del lanzamiento vertical</h3>
-      <div class="formula-grid">
-        <div class="formula-box"><div class="label">Tiempo de subida</div><div class="expr">t_subida = v₀ / g</div></div>
-        <div class="formula-box"><div class="label">Altura máxima</div><div class="expr">h_máx = v₀² / (2g)</div></div>
-        <div class="formula-box"><div class="label">Tiempo total de vuelo</div><div class="expr">t_vuelo = 2v₀ / g</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Simulación</span>Objeto lanzado hacia arriba</h3>
-      <div class="sim-layout">
-        <div class="sim-stage">
-          <canvas id="lv-canvas" width="640" height="320"></canvas>
-        </div>
-        <div class="controls">
-          <div class="control-row">
-            <label>Velocidad inicial v₀ <b id="lv-v0-val">15 m/s</b></label>
-            <input type="range" id="lv-v0" min="5" max="30" step="1" value="15">
-          </div>
-          <div class="static-note">h₀ = 0 m — parte desde el punto de lanzamiento (mano/suelo).</div>
-          <div class="btn-row">
-            <button class="btn primary" id="lv-play">▶ Reproducir</button>
-            <button class="btn" id="lv-reset">Reiniciar</button>
-          </div>
-          <div class="readout">
-            <div class="cell"><div class="k">t</div><div class="v" id="lv-t">0.0 s</div></div>
-            <div class="cell"><div class="k">altura</div><div class="v" id="lv-y">0.0 m</div></div>
-            <div class="cell"><div class="k">v</div><div class="v" id="lv-vr">15.0 m/s</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="graphs">
-        <div class="graph-box"><div class="glabel">y – t (altura vs tiempo)</div><canvas id="lv-graph-y" width="300" height="140"></canvas></div>
-        <div class="graph-box"><div class="glabel">v – t (velocidad vs tiempo)</div><canvas id="lv-graph-v" width="300" height="140"></canvas></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 1</span>Altura máxima de una pelota</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Se lanza una pelota hacia arriba con v₀ = 15 m/s. Calcula el tiempo hasta la altura máxima y el valor de esa altura.</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">En la altura máxima v = 0: <span class="calc">t = v₀/g = 15/9.8</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Resolvemos: <span class="calc">t ≈ 1.53 s</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Altura máxima: <span class="calc">h_max = v₀²/(2g) = 225/19.6</span></div></div>
-        <div class="step"><div class="idx">4</div><div class="txt">Resolvemos: <span class="calc">h_max ≈ 11.5 m</span><small>Sube durante 1.53 s y alcanza 11.5 m de altura.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 2</span>Tiempo total en el aire</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Se lanza una piedra verticalmente hacia arriba con 20 m/s. ¿Cuál es la altura máxima que alcanza y cuánto tiempo tarda en regresar al punto de lanzamiento?</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Altura máxima: <span class="calc">h_max = v₀²/(2g) = 400/19.6</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Resolvemos: <span class="calc">h_max ≈ 20.4 m</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Tiempo total de vuelo (subida + bajada): <span class="calc">t = 2v₀/g = 40/9.8</span></div></div>
-        <div class="step"><div class="idx">4</div><div class="txt">Resolvemos: <span class="calc">t ≈ 4.08 s</span><small>h_max ≈ 20.4 m, tiempo total en el aire ≈ 4.08 s.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Practica</span>Ejercicios propuestos</h3>
-      <div class="problem">
-        <div class="q"><b>1.</b> Se lanza una piedra hacia arriba con 18 m/s. ¿Cuánto tarda en alcanzar la altura máxima, cuál es esa altura, y cuánto tiempo total permanece en el aire?</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">t_subida = 18/9.8 ≈ 1.84 s. h_max = 18²/19.6 ≈ 16.5 m. t_total = 2×1.84 ≈ 3.67 s. <span class="final">t_subida ≈ 1.84 s, h_max ≈ 16.5 m, t_total ≈ 3.67 s</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>2.</b> Un jugador de vóley salta lanzando el balón hacia arriba con 8 m/s. ¿Cuánto tiempo permanece el balón en el aire antes de volver a su mano?</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">t = 2v₀/g = 16/9.8. <span class="final">t ≈ 1.63 s</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>3.</b> ¿Con qué velocidad inicial debe lanzarse un objeto hacia arriba para que alcance 12.5 m de altura máxima?</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">De h_max = v₀²/(2g) despejamos v₀ = √(2g·h) = √(2×9.8×12.5) = √245. <span class="final">v₀ ≈ 15.7 m/s</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= MCU ================= -->
-  <section class="topic" id="topic-mcu">
-    <div class="topic-head">
-      <div class="family-chip circular">🎡 Familia · movimiento circular</div>
-      <h2>Movimiento Circular Uniforme (MCU)</h2>
-      <p>Un objeto recorre una <b>trayectoria circular con rapidez angular constante</b> (ω constante). La rapidez lineal (tangencial) no cambia de magnitud, pero sí de dirección — por eso existe una aceleración centrípeta que apunta siempre hacia el centro.</p>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Fórmulas</span>Ecuaciones del MCU</h3>
-      <div class="formula-grid">
-        <div class="formula-box"><div class="label">Velocidad angular</div><div class="expr">ω = Δθ / Δt (rad/s)</div></div>
-        <div class="formula-box"><div class="label">Velocidad tangencial</div><div class="expr">v = ω·r</div></div>
-        <div class="formula-box"><div class="label">Periodo</div><div class="expr">T = 2π / ω</div></div>
-        <div class="formula-box"><div class="label">Frecuencia</div><div class="expr">f = 1 / T</div></div>
-        <div class="formula-box"><div class="label">Aceleración centrípeta</div><div class="expr">a_c = v²/r = ω²·r</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Simulación</span>Punto girando a velocidad angular constante</h3>
-      <div class="sim-layout">
-        <div class="sim-stage">
-          <canvas id="mcu-canvas" width="640" height="320"></canvas>
-        </div>
-        <div class="controls">
-          <div class="control-row">
-            <label>Radio r <b id="mcu-r-val">2.0 m</b></label>
-            <input type="range" id="mcu-r" min="0.5" max="3.5" step="0.1" value="2">
-          </div>
-          <div class="control-row">
-            <label>Velocidad angular ω <b id="mcu-w-val">2.0 rad/s</b></label>
-            <input type="range" id="mcu-w" min="0.3" max="6" step="0.1" value="2">
-          </div>
-          <div class="btn-row">
-            <button class="btn primary" id="mcu-play">▶ Reproducir</button>
-            <button class="btn" id="mcu-reset">Reiniciar</button>
-          </div>
-          <div class="readout">
-            <div class="cell"><div class="k">t</div><div class="v" id="mcu-t">0.0 s</div></div>
-            <div class="cell"><div class="k">θ</div><div class="v" id="mcu-th">0.0°</div></div>
-            <div class="cell"><div class="k">v tangencial</div><div class="v" id="mcu-vt">4.0 m/s</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="graphs">
-        <div class="graph-box"><div class="glabel">θ – t (ángulo vs tiempo, recta)</div><canvas id="mcu-graph-th" width="300" height="140"></canvas></div>
-        <div class="graph-box"><div class="glabel">ω – t (velocidad angular vs tiempo)</div><canvas id="mcu-graph-w" width="300" height="140"></canvas></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 1</span>Rueda girando</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Una rueda gira con velocidad angular constante de 4 rad/s y radio 0.5 m. Calcula la velocidad tangencial, el periodo y la frecuencia.</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Velocidad tangencial: <span class="calc">v = ω·r = 4 × 0.5 = 2 m/s</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Periodo: <span class="calc">T = 2π/ω = 2π/4 ≈ 1.57 s</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Frecuencia: <span class="calc">f = 1/T = 1/1.57 ≈ 0.64 Hz</span><small>v = 2 m/s, T ≈ 1.57 s, f ≈ 0.64 Hz.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 2</span>Satélite en órbita</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Un satélite orbita con periodo de 90 min (5400 s) a un radio de 6700 km. Calcula su velocidad angular y su velocidad tangencial.</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Velocidad angular: <span class="calc">ω = 2π/T = 2π/5400 ≈ 0.001164 rad/s</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Velocidad tangencial: <span class="calc">v = ω·r = 0.001164 × 6 700 000</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Resolvemos: <span class="calc">v ≈ 7800 m/s</span><small>Casi 7.8 km/s — coherente con la velocidad orbital real de satélites bajos.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Practica</span>Ejercicios propuestos</h3>
-      <div class="problem">
-        <div class="q"><b>1.</b> Una centrífuga gira con velocidad angular de 300 rad/s y radio de 0.15 m. Calcula la velocidad tangencial y la aceleración centrípeta.</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">v = ωr = 300 × 0.15 = 45 m/s. a_c = ω²r = 300² × 0.15 = 90 000 × 0.15. <span class="final">v = 45 m/s, a_c = 13 500 m/s²</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>2.</b> Un disco de radio 0.2 m completa una vuelta cada 0.5 s. Calcula su velocidad angular y su velocidad tangencial.</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">ω = 2π/T = 2π/0.5 ≈ 12.57 rad/s. v = ωr = 12.57 × 0.2. <span class="final">ω ≈ 12.57 rad/s, v ≈ 2.51 m/s</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>3.</b> Una rueda de la fortuna de 10 m de radio da una vuelta completa en 2 minutos. Calcula la velocidad tangencial de una persona en el borde.</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">T = 120 s. ω = 2π/120 ≈ 0.0524 rad/s. v = ωr = 0.0524 × 10. <span class="final">v ≈ 0.52 m/s</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= MCV ================= -->
-  <section class="topic" id="topic-mcv">
-    <div class="topic-head">
-      <div class="family-chip circular">🎡 Familia · movimiento circular</div>
-      <h2>Movimiento Circular Uniformemente Variado (MCV)</h2>
-      <p>La velocidad angular <b>cambia a un ritmo constante</b>: existe una aceleración angular constante α. Es el análogo circular del MRUV, cambiando posición y velocidad por ángulo y velocidad angular.</p>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Fórmulas</span>Ecuaciones del MCV</h3>
-      <div class="formula-grid">
-        <div class="formula-box"><div class="label">Velocidad angular</div><div class="expr">ω = ω₀ + α·t</div></div>
-        <div class="formula-box"><div class="label">Ángulo girado</div><div class="expr">θ = ω₀·t + ½α·t²</div></div>
-        <div class="formula-box"><div class="label">Relación sin tiempo</div><div class="expr">ω² = ω₀² + 2α·θ</div></div>
-        <div class="formula-box"><div class="label">Aceleración tangencial</div><div class="expr">a_t = α·r</div></div>
-        <div class="formula-box"><div class="label">Aceleración centrípeta</div><div class="expr">a_c = ω²·r</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Simulación</span>Punto girando con aceleración angular</h3>
-      <div class="sim-layout">
-        <div class="sim-stage">
-          <canvas id="mcv-canvas" width="640" height="320"></canvas>
-        </div>
-        <div class="controls">
-          <div class="control-row">
-            <label>Radio r <b id="mcv-r-val">2.0 m</b></label>
-            <input type="range" id="mcv-r" min="0.5" max="3.5" step="0.1" value="2">
-          </div>
-          <div class="control-row">
-            <label>ω₀ inicial <b id="mcv-w0-val">0.0 rad/s</b></label>
-            <input type="range" id="mcv-w0" min="0" max="4" step="0.1" value="0">
-          </div>
-          <div class="control-row">
-            <label>Aceleración angular α <b id="mcv-alpha-val">1.5 rad/s²</b></label>
-            <input type="range" id="mcv-alpha" min="-3" max="3" step="0.1" value="1.5">
-          </div>
-          <div class="btn-row">
-            <button class="btn primary" id="mcv-play">▶ Reproducir</button>
-            <button class="btn" id="mcv-reset">Reiniciar</button>
-          </div>
-          <div class="readout">
-            <div class="cell"><div class="k">t</div><div class="v" id="mcv-t">0.0 s</div></div>
-            <div class="cell"><div class="k">θ</div><div class="v" id="mcv-th">0.0°</div></div>
-            <div class="cell"><div class="k">ω</div><div class="v" id="mcv-w">0.0 rad/s</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="graphs">
-        <div class="graph-box"><div class="glabel">ω – t (velocidad angular, recta)</div><canvas id="mcv-graph-w" width="300" height="140"></canvas></div>
-        <div class="graph-box"><div class="glabel">θ – t (ángulo, curva)</div><canvas id="mcv-graph-th" width="300" height="140"></canvas></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 1</span>Ventilador arrancando</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Un ventilador parte del reposo y acelera angularmente a razón de 2 rad/s². ¿Qué velocidad angular alcanza en 5 s y cuántas vueltas dio?</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Velocidad angular: <span class="calc">ω = ω₀ + αt = 0 + 2(5) = 10 rad/s</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Ángulo girado: <span class="calc">θ = ½αt² = ½(2)(25) = 25 rad</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Número de vueltas: <span class="calc">n = θ/2π = 25/6.28</span><small>ω = 10 rad/s, dio aproximadamente 3.98 vueltas.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 2</span>Rueda frenando</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Una rueda gira a 20 rad/s y se frena uniformemente hasta detenerse en 8 s. Calcula la aceleración angular y el número de vueltas antes de detenerse.</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Aceleración: <span class="calc">α = (ω−ω₀)/t = (0−20)/8 = −2.5 rad/s²</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Ángulo usando ω²=ω₀²+2αθ con ω=0: <span class="calc">θ = ω₀²/(2|α|) = 400/5 = 80 rad</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Vueltas: <span class="calc">n = 80/6.28</span><small>α = −2.5 rad/s², dio aproximadamente 12.7 vueltas antes de detenerse.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Practica</span>Ejercicios propuestos</h3>
-      <div class="problem">
-        <div class="q"><b>1.</b> Un motor parte del reposo y alcanza 150 rad/s en 10 s con aceleración angular constante. Calcula α y el ángulo girado en ese tiempo.</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">α = (150−0)/10 = 15 rad/s². θ = ½αt² = ½(15)(100). <span class="final">α = 15 rad/s², θ = 750 rad</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>2.</b> Una centrífuga gira a 200 rad/s y se detiene en 4 s por frenado uniforme. Calcula la aceleración angular y las vueltas que da al frenar.</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">α = (0−200)/4 = −50 rad/s². θ = ω₀²/(2|α|) = 40 000/100 = 400 rad. Vueltas = 400/6.28. <span class="final">α = −50 rad/s², ≈ 63.7 vueltas</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>3.</b> Un disco parte con ω₀ = 5 rad/s y acelera a 1.5 rad/s² durante 6 s. Calcula la velocidad angular final y el ángulo total girado.</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">ω = 5 + 1.5(6) = 14 rad/s. θ = 5(6) + ½(1.5)(36) = 30 + 27. <span class="final">ω = 14 rad/s, θ = 57 rad</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= PARABOLICO ================= -->
-  <section class="topic" id="topic-parabolico">
-    <div class="topic-head">
-      <div class="family-chip plano">⚽ Familia · movimiento en el plano</div>
-      <h2>Movimiento Parabólico (Tiro Oblicuo)</h2>
-      <p>Combina dos movimientos independientes: <b>horizontal a velocidad constante</b> (MRU) y <b>vertical con aceleración de la gravedad</b> (MRUA). Su trayectoria resultante es una parábola.</p>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Fórmulas</span>Ecuaciones del tiro parabólico</h3>
-      <div class="formula-grid">
-        <div class="formula-box"><div class="label">Componentes de v₀</div><div class="expr">v₀ₓ = v₀cosθ  ·  v₀ᵧ = v₀senθ</div></div>
-        <div class="formula-box"><div class="label">Posición horizontal</div><div class="expr">x(t) = v₀cosθ · t</div></div>
-        <div class="formula-box"><div class="label">Posición vertical</div><div class="expr">y(t) = v₀senθ·t − ½g·t²</div></div>
-        <div class="formula-box"><div class="label">Tiempo de vuelo</div><div class="expr">T = 2v₀senθ / g</div></div>
-        <div class="formula-box"><div class="label">Altura máxima</div><div class="expr">H = (v₀senθ)² / 2g</div></div>
-        <div class="formula-box"><div class="label">Alcance horizontal</div><div class="expr">R = v₀²sen(2θ) / g</div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Simulación</span>Trayectoria del proyectil</h3>
-      <div class="sim-layout">
-        <div class="sim-stage">
-          <canvas id="pb-canvas" width="640" height="340"></canvas>
-        </div>
-        <div class="controls">
-          <div class="control-row">
-            <label>Velocidad inicial v₀ <b id="pb-v0-val">25 m/s</b></label>
-            <input type="range" id="pb-v0" min="5" max="40" step="1" value="25">
-          </div>
-          <div class="control-row">
-            <label>Ángulo θ <b id="pb-ang-val">45°</b></label>
-            <input type="range" id="pb-ang" min="5" max="85" step="1" value="45">
-          </div>
-          <div class="btn-row">
-            <button class="btn primary" id="pb-play">▶ Reproducir</button>
-            <button class="btn" id="pb-reset">Reiniciar</button>
-          </div>
-          <div class="readout">
-            <div class="cell"><div class="k">t</div><div class="v" id="pb-t">0.0 s</div></div>
-            <div class="cell"><div class="k">alcance R</div><div class="v" id="pb-r">–</div></div>
-            <div class="cell"><div class="k">altura H</div><div class="v" id="pb-h">–</div></div>
-          </div>
-        </div>
-      </div>
-      <div class="graphs">
-        <div class="graph-box"><div class="glabel">x – t (horizontal)</div><canvas id="pb-graph-x" width="300" height="140"></canvas></div>
-        <div class="graph-box"><div class="glabel">y – t (vertical)</div><canvas id="pb-graph-y" width="300" height="140"></canvas></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 1</span>Alcance, altura y tiempo de vuelo</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Se lanza un proyectil con v₀ = 30 m/s y un ángulo de 40°. Calcula el alcance, la altura máxima y el tiempo de vuelo. (sen40°≈0.643, cos40°≈0.766, sen80°≈0.985)</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Tiempo de vuelo: <span class="calc">T = 2v₀senθ/g = (2×30×0.643)/9.8</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Resolvemos: <span class="calc">T ≈ 3.94 s</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Altura máxima: <span class="calc">H = (v₀senθ)²/2g = (30×0.643)²/19.6 ≈ 19.0 m</span></div></div>
-        <div class="step"><div class="idx">4</div><div class="txt">Alcance: <span class="calc">R = v₀²sen(2θ)/g = 900×0.985/9.8</span></div></div>
-        <div class="step"><div class="idx">5</div><div class="txt">Resolvemos: <span class="calc">R ≈ 90.5 m</span><small>T ≈ 3.94 s, H ≈ 19.0 m, R ≈ 90.5 m</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Ejemplo resuelto 2</span>Balón pateado</h3>
-      <p class="mono" style="color:var(--muted);font-size:13.5px;">Un balón se patea con v₀ = 20 m/s a 55°. Calcula el tiempo de vuelo y el alcance. (sen55°≈0.819, sen110°≈0.940)</p>
-      <div class="steps">
-        <div class="step"><div class="idx">1</div><div class="txt">Tiempo de vuelo: <span class="calc">T = 2×20×0.819/9.8 ≈ 3.34 s</span></div></div>
-        <div class="step"><div class="idx">2</div><div class="txt">Alcance: <span class="calc">R = 400×0.940/9.8</span></div></div>
-        <div class="step"><div class="idx">3</div><div class="txt">Resolvemos: <span class="calc">R ≈ 38.4 m</span><small>El balón vuela 3.34 s y cae a 38.4 m de distancia.</small></div></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Practica</span>Ejercicios propuestos</h3>
-      <div class="problem">
-        <div class="q"><b>1.</b> Un proyectil se lanza a 25 m/s con un ángulo de 30°. Encuentra su alcance horizontal y su altura máxima. (sen30°=0.5, sen60°≈0.866)</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">R = v₀²sen(2θ)/g = 625×0.866/9.8 ≈ 55.2 m. H = (v₀senθ)²/2g = (25×0.5)²/19.6 ≈ 8.0 m. <span class="final">R ≈ 55.2 m, H ≈ 8.0 m</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>2.</b> ¿Con qué ángulo debe lanzarse un proyectil a 15 m/s para lograr el alcance máximo, y cuál es ese alcance?</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">El alcance es máximo cuando θ = 45° (sen(2θ)=1). R_max = v₀²/g = 225/9.8. <span class="final">θ = 45°, R_max ≈ 23.0 m</span></div>
-      </div>
-      <div class="problem">
-        <div class="q"><b>3.</b> Un objeto se lanza horizontalmente (θ = 0°) desde 20 m de altura con v₀ = 12 m/s. ¿Cuánto tarda en caer y qué distancia horizontal recorre?</div>
-        <button class="reveal-btn">Mostrar solución</button>
-        <div class="answer">Como v₀y = 0, el tiempo de caída depende solo de la altura: t = √(2h/g) = √(40/9.8) ≈ 2.02 s. Alcance: x = v₀·t = 12 × 2.02. <span class="final">t ≈ 2.02 s, x ≈ 24.2 m</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= PARA NIÑOS ================= -->
-  <section class="topic" id="topic-ninos">
-    <div class="kids-wrap">
-      <div class="topic-head">
-        <div class="kids-badge">🧒 Modo fácil</div>
-        <h2>¡Vamos a jugar con el movimiento! 🎈</h2>
-        <p>Aquí no hay números complicados. Solo autitos, manzanas que caen, y muchas sorpresas. ¡Aprieta los botones y mira qué pasa!</p>
-      </div>
-
-      <div class="kids-card">
-        <h3>🚗 El autito que siempre va igual de rápido</h3>
-        <p>Cuando un autito no acelera ni frena — siempre anda igualito de rápido — decimos que va "parejito". Elige qué tan rápido quieres que vaya:</p>
-        <div class="kids-btn-row">
-          <button class="kids-choice active" id="kid-speed-slow">🐢 Despacito</button>
-          <button class="kids-choice" id="kid-speed-normal">🚶 Normal</button>
-          <button class="kids-choice" id="kid-speed-fast">🚀 ¡Rapidísimo!</button>
-        </div>
-        <div class="kids-stage">
-          <canvas id="kid-mru-canvas" width="640" height="180"></canvas>
-        </div>
-        <div class="kids-play-row">
-          <button class="kids-play-btn" id="kid-mru-play">▶ ¡Vamos!</button>
-          <button class="kids-reset-btn" id="kid-mru-reset">🔄 De nuevo</button>
-        </div>
-        <div class="kids-readout">
-          <div class="kcell">⏱️ Tiempo: <span id="kid-mru-t">0</span> s</div>
-          <div class="kcell">🏠 Casitas pasadas: <span id="kid-mru-houses">0</span></div>
-        </div>
-        <div class="kids-msg" id="kid-mru-msg"></div>
-      </div>
-
-      <div class="kids-card">
-        <h3>🍎 ¿Qué pasa si sueltas algo?</h3>
-        <p>Si sueltas una manzana, ¡no cae siempre igual de lento! Cada segundo cae más y más rápido — eso se llama gravedad. Elige desde dónde la vas a soltar:</p>
-        <div class="kids-btn-row">
-          <button class="kids-choice active" id="kid-h-low">🌳 Bajito</button>
-          <button class="kids-choice" id="kid-h-high">🏢 Alto</button>
-          <button class="kids-choice" id="kid-h-veryhigh">✈️ ¡Muy alto!</button>
-        </div>
-        <div class="kids-stage">
-          <canvas id="kid-fall-canvas" width="640" height="260"></canvas>
-        </div>
-        <div class="kids-play-row">
-          <button class="kids-play-btn" id="kid-fall-play">▶ ¡Suéltala!</button>
-          <button class="kids-reset-btn" id="kid-fall-reset">🔄 De nuevo</button>
-        </div>
-        <div class="kids-readout">
-          <div class="kcell">⏱️ Tiempo cayendo: <span id="kid-fall-t">0</span> s</div>
-        </div>
-        <div class="kids-msg" id="kid-fall-msg"></div>
-      </div>
-
-      <div class="kids-card">
-        <h3>🎯 Adivina y gana</h3>
-        <p class="kids-quiz-q">Dos autitos salen juntos desde el mismo lugar hacia la misma meta. Uno va rápido 🚀 y el otro despacito 🐢. ¿Cuál llega primero?</p>
-        <div class="kids-btn-row">
-          <button class="kids-choice" data-correct="yes" id="kid-quiz-a">🚀 El rápido</button>
-          <button class="kids-choice" data-correct="no" id="kid-quiz-b">🐢 El lento</button>
-          <button class="kids-choice" data-correct="no" id="kid-quiz-c">Llegan juntos</button>
-        </div>
-        <div class="kids-quiz-feedback" id="kid-quiz-feedback"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= ASISTENTE PERSONAL ================= -->
-  <section class="topic" id="topic-asistente">
-    <div class="topic-head">
-      <h2>🧭 Asistente Personal de Cinemática</h2>
-      <p>Elige el tipo de movimiento, escribe los datos que conoces, y presiona "Calcular y simular". El asistente te dirá el tiempo, la velocidad, la posición (o el ángulo) — y te mostrará la simulación en vivo.</p>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Paso 1</span>¿Qué tipo de movimiento es?</h3>
-      <div class="control-row">
-        <label>Tipo de movimiento</label>
-        <select id="asst-type">
-          <option value="mru">MRU — velocidad constante</option>
-          <option value="mruv">MRUV — aceleración constante</option>
-          <option value="caida">Caída libre</option>
-          <option value="lanzamiento">Lanzamiento vertical</option>
-          <option value="parabolico">Movimiento parabólico</option>
-          <option value="mcu">MCU — giro constante</option>
-          <option value="mcv">MCV — giro acelerado</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Paso 2</span>Escribe los datos que conoces</h3>
-      <div class="asst-grid">
-        <div class="asst-field" data-types="mru mruv"><label>Posición inicial x₀ (m)</label><input type="number" id="asst-x0" value="0"></div>
-        <div class="asst-field" data-types="mru"><label>Velocidad v (m/s)</label><input type="number" id="asst-v" value="5"></div>
-        <div class="asst-field" data-types="mru mruv mcu mcv"><label>Tiempo a mostrar t (s)</label><input type="number" id="asst-t" value="6"></div>
-        <div class="asst-field" data-types="mruv lanzamiento parabolico"><label>Velocidad inicial v₀ (m/s)</label><input type="number" id="asst-v0" value="10"></div>
-        <div class="asst-field" data-types="mruv"><label>Aceleración a (m/s²)</label><input type="number" id="asst-a" value="2"></div>
-        <div class="asst-field" data-types="caida"><label>Altura inicial h₀ (m)</label><input type="number" id="asst-h0" value="40"></div>
-        <div class="asst-field" data-types="parabolico"><label>Ángulo θ (grados)</label><input type="number" id="asst-ang" value="45"></div>
-        <div class="asst-field" data-types="mcu mcv"><label>Radio r (m)</label><input type="number" id="asst-r" value="2"></div>
-        <div class="asst-field" data-types="mcu"><label>Velocidad angular ω (rad/s)</label><input type="number" id="asst-w" value="2"></div>
-        <div class="asst-field" data-types="mcv"><label>ω₀ inicial (rad/s)</label><input type="number" id="asst-w0" value="0"></div>
-        <div class="asst-field" data-types="mcv"><label>Aceleración angular α (rad/s²)</label><input type="number" id="asst-alpha" value="1.5"></div>
-      </div>
-      <div class="asst-error" id="asst-error"></div>
-      <div class="btn-row">
-        <button class="btn primary" id="asst-calc">✨ Calcular y simular</button>
-        <button class="btn" id="asst-play">▶ Reproducir</button>
-        <button class="btn" id="asst-reset">Reiniciar</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3><span class="tag">Resultado</span>Lo que el asistente calculó</h3>
-      <div class="asst-results" id="asst-results">
-        <div class="rcell"><span class="rk">estado</span><span class="rv">Escribe tus datos y presiona "Calcular y simular"</span></div>
-      </div>
-      <div class="sim-stage" style="margin-top:16px;">
-        <canvas id="asst-canvas" width="640" height="320"></canvas>
-      </div>
-    </div>
-  </section>
+  </div>
+</section>
 
 </main>
 
 <footer>
-  <div class="line"></div>
-  <p>Referencia rápida: g = 9.8 m/s² · MRU → x = x₀+vt · MRUV → v = v₀+at, Δx = v₀t+½at² · Caída libre → h=½gt², v=gt · Lanz. vertical → h_máx=v₀²/2g, t_vuelo=2v₀/g · MCU → v=ωr, T=2π/ω · MCV → ω=ω₀+αt, θ=ω₀t+½αt² · Parabólico → R = v₀²sen(2θ)/g</p>
+  <div class="brand" data-page="inicio"><span class="dot">◆</span>DCL<span class="dot">·</span>Lab</div>
+  <p>Hecho para practicar equilibrio y fuerzas — toca, arrastra y resuelve.</p>
 </footer>
 
 <script>
-/* ============ Boot / loading screen ============ */
-window.addEventListener('load', ()=>{
-  setTimeout(()=>{
-    const boot = document.getElementById('boot-screen');
-    if(boot){
-      boot.classList.add('hide');
-      setTimeout(()=>boot.remove(), 650);
+(function(){
+  "use strict";
+
+  /* ============ PAGE ROUTER ============ */
+  var pages = document.querySelectorAll('.page');
+  var navLinkEls = document.querySelectorAll('.nav-link');
+  function showPage(id){
+    pages.forEach(function(p){ p.classList.toggle('active', p.id === 'page-' + id); });
+    navLinkEls.forEach(function(a){ a.classList.toggle('active', a.dataset.page === id); });
+    window.scrollTo({top:0, behavior:'smooth'});
+    document.getElementById('navLinks').classList.remove('open');
+    if(id === 'examen'){ renderExamPage(); }
+  }
+  document.body.addEventListener('click', function(e){
+    var btn = e.target.closest('[data-page]');
+    if(btn){ showPage(btn.getAttribute('data-page')); }
+  });
+
+  /* ============ NAV TOGGLE (mobile) ============ */
+  var navToggle = document.getElementById('navToggle');
+  var navLinks = document.getElementById('navLinks');
+  navToggle.addEventListener('click', function(){ navLinks.classList.toggle('open'); });
+
+  /* ============ RIPPLE ============ */
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.btn');
+    if(!btn) return;
+    var rect = btn.getBoundingClientRect();
+    var span = document.createElement('span');
+    var size = Math.max(rect.width, rect.height);
+    span.className = 'ripple';
+    span.style.width = span.style.height = size + 'px';
+    span.style.left = ((e.clientX || rect.left + rect.width/2) - rect.left - size/2) + 'px';
+    span.style.top = ((e.clientY || rect.top + rect.height/2) - rect.top - size/2) + 'px';
+    btn.appendChild(span);
+    setTimeout(function(){ span.remove(); }, 600);
+  });
+
+  /* ============ SCROLL REVEAL ============ */
+  var revealEls = document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add('in-view'); io.unobserve(en.target); }
+      });
+    }, {threshold:.1});
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('in-view'); });
+  }
+
+  /* ============ FORCE TYPES ============ */
+  var FORCE_TYPES = {
+    peso:     {label:'Peso',      symbol:'W',  color:'#FF6B6B', defAngle:270},
+    normal:   {label:'Normal',    symbol:'N',  color:'#4ECDC4', defAngle:90},
+    tension:  {label:'Tensión',   symbol:'T',  color:'#95E06C', defAngle:90},
+    aplicada: {label:'Aplicada',  symbol:'F',  color:'#FFD166', defAngle:0},
+    friccion: {label:'Fricción',  symbol:'f',  color:'#C084FC', defAngle:180},
+    elastica: {label:'Elástica',  symbol:'Fe', color:'#60A5FA', defAngle:90}
+  };
+  function populateTypeSelect(sel){
+    sel.innerHTML = '';
+    Object.keys(FORCE_TYPES).forEach(function(key){
+      var opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = FORCE_TYPES[key].label + ' (' + FORCE_TYPES[key].symbol + ')';
+      sel.appendChild(opt);
+    });
+  }
+
+  /* ============ THEORY ============ */
+  var THEORY = [
+    {title:'Primera Ley de Newton', formula:'ΣF = 0', text:'Si un cuerpo está en reposo o se mueve a velocidad constante, la suma de todas las fuerzas que actúan sobre él es cero: está en equilibrio.'},
+    {title:'Segunda Ley de Newton', formula:'ΣF = m · a', text:'Cuando la fuerza neta no es cero, el cuerpo acelera en la misma dirección de esa fuerza resultante, proporcional a su masa.'},
+    {title:'Peso (W)', formula:'W = m · g', text:'Es la fuerza con la que la gravedad atrae al cuerpo. Siempre apunta verticalmente hacia abajo. g ≈ 9.8 m/s².'},
+    {title:'Normal (N)', formula:'N ⟂ superficie', text:'Fuerza de contacto que una superficie ejerce sobre el cuerpo, siempre perpendicular a esa superficie, evitando que se atraviesen.'},
+    {title:'Fricción (f)', formula:'f = μ · N', text:'Se opone al movimiento o intento de movimiento relativo entre superficies. μ es el coeficiente de fricción entre ambas.'},
+    {title:'Plano inclinado', formula:'N = m·g·cosθ · | · Pₓ = m·g·senθ', text:'El peso se descompone en un eje paralelo y otro perpendicular al plano para simplificar el análisis del equilibrio.'}
+  ];
+  var theoryGrid = document.getElementById('theoryGrid');
+  THEORY.forEach(function(item){
+    var card = document.createElement('div');
+    card.className = 'theory-card';
+    card.innerHTML =
+      '<div class="theory-head"><h3>' + item.title + '</h3><span class="plus">+</span></div>' +
+      '<div class="theory-body"><div class="theory-body-inner">' +
+        '<div class="formula mono">' + item.formula + '</div>' +
+        '<p>' + item.text + '</p>' +
+      '</div></div>';
+    var body = card.querySelector('.theory-body');
+    card.querySelector('.theory-head').addEventListener('click', function(){
+      var isOpen = card.classList.contains('open');
+      theoryGrid.querySelectorAll('.theory-card.open').forEach(function(c){
+        if(c !== card){ c.classList.remove('open'); c.querySelector('.theory-body').style.maxHeight = 0; }
+      });
+      if(isOpen){ card.classList.remove('open'); body.style.maxHeight = 0; }
+      else { card.classList.add('open'); body.style.maxHeight = body.scrollHeight + 'px'; }
+    });
+    theoryGrid.appendChild(card);
+  });
+
+  /* ============ FORCE CANVAS ENGINE ============ */
+  function ForceCanvas(canvasEl, onChange){
+    this.canvas = canvasEl;
+    this.ctx = canvasEl.getContext('2d');
+    this.forces = [];
+    this.scale = 4.2;
+    this.dragId = null;
+    this.onChange = onChange || function(){};
+    var self = this;
+    window.addEventListener('resize', function(){ self.setupSize(); });
+    this.setupSize();
+    this.bindEvents();
+  }
+  ForceCanvas.prototype.setupSize = function(){
+    var rect = this.canvas.getBoundingClientRect();
+    this.canvas.width = Math.max(280, rect.width);
+    this.canvas.height = rect.height || 320;
+    this.cx = this.canvas.width / 2;
+    this.cy = this.canvas.height / 2;
+    this.draw();
+  };
+  ForceCanvas.prototype.addForce = function(f){
+    f.id = 'f' + Math.random().toString(36).slice(2, 9);
+    this.forces.push(f);
+    this.draw(); this.onChange();
+    return f.id;
+  };
+  ForceCanvas.prototype.removeForce = function(id){
+    this.forces = this.forces.filter(function(f){ return f.id !== id; });
+    this.draw(); this.onChange();
+  };
+  ForceCanvas.prototype.clear = function(){ this.forces = []; this.draw(); this.onChange(); };
+  ForceCanvas.prototype.setForces = function(arr){
+    this.forces = (arr || []).map(function(f){
+      return {
+        id:'f' + Math.random().toString(36).slice(2, 9),
+        typeKey:f.typeKey, label:f.label, magnitude:f.magnitude, angleDeg:f.angleDeg, color:f.color
+      };
+    });
+    this.draw(); this.onChange();
+  };
+  ForceCanvas.prototype.maxLen = function(){ return Math.min(this.canvas.width, this.canvas.height) * 0.42; };
+  ForceCanvas.prototype.getTip = function(f){
+    var rad = f.angleDeg * Math.PI / 180;
+    var len = Math.min(f.magnitude * this.scale, this.maxLen());
+    return { x: this.cx + Math.cos(rad) * len, y: this.cy - Math.sin(rad) * len };
+  };
+  ForceCanvas.prototype.draw = function(){
+    var ctx = this.ctx;
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    var s = 38;
+    ctx.fillStyle = 'rgba(30,42,34,0.85)';
+    ctx.strokeStyle = '#1E2A22';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    if(ctx.roundRect){ ctx.roundRect(this.cx - s/2, this.cy - s/2, s, s, 5); } else { ctx.rect(this.cx - s/2, this.cy - s/2, s, s); }
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#F6F1E3';
+    ctx.font = '600 12px "IBM Plex Mono", monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('m', this.cx, this.cy);
+
+    var self = this;
+    this.forces.forEach(function(f){
+      var tip = self.getTip(f);
+      self.drawArrow(self.cx, self.cy, tip.x, tip.y, f.color);
+      ctx.fillStyle = f.color;
+      ctx.font = '700 12px "Space Grotesk", sans-serif';
+      ctx.textAlign = (tip.x >= self.cx) ? 'left' : 'right';
+      ctx.textBaseline = 'middle';
+      var lx = tip.x + (tip.x >= self.cx ? 8 : -8);
+      var ly = tip.y - 10;
+      ctx.fillText(f.label + ' (' + f.magnitude.toFixed(1) + 'N)', lx, ly);
+    });
+  };
+  ForceCanvas.prototype.drawArrow = function(x1, y1, x2, y2, color){
+    var ctx = this.ctx;
+    var headlen = 11;
+    var angle = Math.atan2(y2 - y1, x2 - x1);
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3.2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI/6), y2 - headlen * Math.sin(angle - Math.PI/6));
+    ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI/6), y2 - headlen * Math.sin(angle + Math.PI/6));
+    ctx.closePath(); ctx.fill();
+  };
+  ForceCanvas.prototype.findNear = function(x, y){
+    var found = null, mind = 22;
+    var self = this;
+    this.forces.forEach(function(f){
+      var tip = self.getTip(f);
+      var d = Math.hypot(tip.x - x, tip.y - y);
+      if(d < mind){ mind = d; found = f; }
+    });
+    return found;
+  };
+  ForceCanvas.prototype.posFromEvent = function(e){
+    var rect = this.canvas.getBoundingClientRect();
+    var cx = e.touches && e.touches.length ? e.touches[0].clientX : e.clientX;
+    var cy = e.touches && e.touches.length ? e.touches[0].clientY : e.clientY;
+    return { x: cx - rect.left, y: cy - rect.top };
+  };
+  ForceCanvas.prototype.bindEvents = function(){
+    var self = this;
+    function start(e){
+      var p = self.posFromEvent(e);
+      var f = self.findNear(p.x, p.y);
+      if(f){ self.dragId = f.id; self.canvas.style.cursor = 'grabbing'; e.preventDefault(); }
     }
-  }, 850);
-});
+    function move(e){
+      if(!self.dragId) return;
+      e.preventDefault();
+      var p = self.posFromEvent(e);
+      var f = self.forces.find(function(ff){ return ff.id === self.dragId; });
+      if(!f) return;
+      var dx = p.x - self.cx, dy = self.cy - p.y;
+      var ang = Math.atan2(dy, dx) * 180 / Math.PI;
+      if(ang < 0) ang += 360;
+      f.angleDeg = Math.round(ang);
+      var mag = Math.hypot(dx, dy) / self.scale;
+      f.magnitude = Math.max(0.5, Math.min(mag, self.maxLen() / self.scale));
+      self.draw(); self.onChange();
+    }
+    function end(){ self.dragId = null; self.canvas.style.cursor = 'grab'; }
+    this.canvas.addEventListener('mousedown', start);
+    this.canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', end);
+    this.canvas.addEventListener('touchstart', start, {passive:false});
+    this.canvas.addEventListener('touchmove', move, {passive:false});
+    this.canvas.addEventListener('touchend', end);
+  };
 
-/* ============ Tabs ============ */
-const tabBtns = document.querySelectorAll('.tab-btn');
-const topics = document.querySelectorAll('.topic');
-tabBtns.forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    tabBtns.forEach(b=>b.classList.remove('active'));
-    topics.forEach(t=>t.classList.remove('active'));
-    btn.classList.add('active');
-    btn.classList.add('visited');
-    document.getElementById('topic-'+btn.dataset.tab).classList.add('active');
+  /* ============ SHARED UI HELPERS ============ */
+  function renderList(listEl, inst){
+    listEl.innerHTML = '';
+    if(inst.forces.length === 0){
+      var li = document.createElement('li');
+      li.className = 'empty-hint'; li.style.background = 'transparent';
+      li.textContent = 'Todavía no agregaste fuerzas.';
+      listEl.appendChild(li);
+      return;
+    }
+    inst.forces.forEach(function(f){
+      var li = document.createElement('li');
+      var dot = document.createElement('span'); dot.className = 'dot'; dot.style.background = f.color;
+      var text = document.createElement('span'); text.className = 'fl-text';
+      text.textContent = f.label + ' — ' + f.magnitude.toFixed(1) + ' N a ' + Math.round(f.angleDeg) + '°';
+      var del = document.createElement('button'); del.textContent = '×'; del.setAttribute('aria-label', 'Eliminar fuerza');
+      del.addEventListener('click', function(){ inst.removeForce(f.id); });
+      li.appendChild(dot); li.appendChild(text); li.appendChild(del);
+      listEl.appendChild(li);
+    });
+  }
+  function updateResultant(el, inst){
+    if(inst.forces.length === 0){
+      el.innerHTML = '<span class="muted">Agrega fuerzas para calcular la resultante (ΣF).</span>';
+      return;
+    }
+    var fx = 0, fy = 0;
+    inst.forces.forEach(function(f){
+      var r = f.angleDeg * Math.PI / 180;
+      fx += f.magnitude * Math.cos(r);
+      fy += f.magnitude * Math.sin(r);
+    });
+    var mag = Math.hypot(fx, fy);
+    var ang = Math.atan2(fy, fx) * 180 / Math.PI; if(ang < 0) ang += 360;
+    if(mag < 0.3){ el.innerHTML = '<span class="ok">✓ En equilibrio</span> — ΣF ≈ 0 N'; }
+    else { el.innerHTML = '<span class="warn">⚠ No está en equilibrio</span> — ΣF = ' + mag.toFixed(1) + ' N a ' + ang.toFixed(0) + '°'; }
+  }
+  function wireForceForm(prefix, inst){
+    var sel = document.getElementById(prefix + 'Type');
+    var mag = document.getElementById(prefix + 'Mag');
+    var ang = document.getElementById(prefix + 'Angle');
+    var addBtn = document.getElementById(prefix + 'Add');
+    populateTypeSelect(sel);
+    sel.addEventListener('change', function(){ ang.value = FORCE_TYPES[sel.value].defAngle; });
+    ang.value = FORCE_TYPES[sel.value].defAngle;
+    addBtn.addEventListener('click', function(){
+      var typeKey = sel.value;
+      var m = parseFloat(mag.value);
+      var a = parseFloat(ang.value);
+      if(isNaN(m) || m <= 0){ mag.focus(); return; }
+      if(isNaN(a)){ a = FORCE_TYPES[typeKey].defAngle; }
+      a = ((a % 360) + 360) % 360;
+      inst.addForce({ typeKey:typeKey, label:FORCE_TYPES[typeKey].label, magnitude:m, angleDeg:a, color:FORCE_TYPES[typeKey].color });
+    });
+  }
+
+  /* ============ SIMULATOR (free practice) ============ */
+  var simList = document.getElementById('simList');
+  var simResultant = document.getElementById('simResultant');
+  var simInst = new ForceCanvas(document.getElementById('simCanvas'), function(){
+    renderList(simList, simInst);
+    updateResultant(simResultant, simInst);
   });
-});
+  renderList(simList, simInst);
+  updateResultant(simResultant, simInst);
+  wireForceForm('sim', simInst);
+  document.getElementById('simClear').addEventListener('click', function(){ simInst.clear(); });
 
-/* ============ Practice problem reveal ============ */
-document.querySelectorAll('.problem .reveal-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    const problem = btn.closest('.problem');
-    const open = problem.classList.toggle('open');
-    btn.textContent = open ? 'Ocultar solución' : 'Mostrar solución';
-  });
-});
+  /* ============ EXERCISE GENERATORS ============ */
+  var G = 9.8;
+  function rnd(min, max, dec){ dec = dec || 0; var v = Math.random() * (max - min) + min; return +v.toFixed(dec); }
 
-/* ============ Ripple micro-interaction on buttons ============ */
-function attachRipple(el){
-  el.addEventListener('click', function(e){
-    const rect = this.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const span = document.createElement('span');
-    span.className = 'ripple-fx';
-    span.style.width = span.style.height = size+'px';
-    span.style.left = (e.clientX - rect.left - size/2)+'px';
-    span.style.top = (e.clientY - rect.top - size/2)+'px';
-    this.appendChild(span);
-    setTimeout(()=>span.remove(), 560);
-  });
-}
-document.querySelectorAll('.btn, .kids-choice, .kids-play-btn, .kids-reset-btn, .reveal-btn').forEach(attachRipple);
+  function genHangingPot(){
+    var m = rnd(1, 6, 1), w = +(m * G).toFixed(1);
+    return {
+      icon: '🪴',
+      title: 'La maceta colgante',
+      statement: 'Imagina que cuelgas una maceta de <strong>' + m + ' kg</strong> del techo con un solo hilo bien resistente. Se queda totalmente quieta, sin balancearse.',
+      tip: '💡 Como no se mueve, está en equilibrio: la cuerda debe "jalar" hacia arriba exactamente con la misma fuerza con la que el peso jala hacia abajo.',
+      given: [['Masa (m)', m + ' kg'], ['Gravedad (g)', '9.8 m/s²']],
+      correctForces: [ {type:'peso', magnitude:w, angleDeg:270}, {type:'tension', magnitude:w, angleDeg:90} ]
+    };
+  }
+  function genBookOnTable(){
+    var m = rnd(0.5, 5, 1), w = +(m * G).toFixed(1);
+    return {
+      icon: '📚',
+      title: 'El libro sobre la mesa',
+      statement: 'Un libro de <strong>' + m + ' kg</strong> está quietecito sobre tu mesa de estudio. Nadie lo está tocando ni empujando.',
+      tip: '💡 La mesa "siente" el peso del libro y responde empujando hacia arriba con la misma fuerza: esa es la fuerza Normal.',
+      given: [['Masa (m)', m + ' kg'], ['Gravedad (g)', '9.8 m/s²']],
+      correctForces: [ {type:'peso', magnitude:w, angleDeg:270}, {type:'normal', magnitude:w, angleDeg:90} ]
+    };
+  }
+  function genPushingBox(){
+    var m = rnd(3, 12, 1), F = rnd(8, 30, 1), w = +(m * G).toFixed(1);
+    return {
+      icon: '📦',
+      title: 'La caja de mudanza',
+      statement: 'Estás empujando una caja de mudanza de <strong>' + m + ' kg</strong> por el piso, a velocidad constante, con una fuerza horizontal de <strong>' + F + ' N</strong>.',
+      tip: '💡 "Velocidad constante" es la pista clave: aunque se mueva, no acelera, así que sigue estando en equilibrio. La fricción del piso debe frenarla con la misma fuerza con la que tú la empujas.',
+      given: [['Masa (m)', m + ' kg'], ['Fuerza aplicada (F)', F + ' N']],
+      correctForces: [
+        {type:'peso', magnitude:w, angleDeg:270}, {type:'normal', magnitude:w, angleDeg:90},
+        {type:'aplicada', magnitude:F, angleDeg:0}, {type:'friccion', magnitude:F, angleDeg:180}
+      ]
+    };
+  }
+  function genCartOnRamp(){
+    var m = rnd(2, 8, 1), theta = rnd(20, 50, 0), w = +(m * G).toFixed(1);
+    var rad = theta * Math.PI / 180;
+    var N = +(w * Math.cos(rad)).toFixed(1);
+    var T = +(w * Math.sin(rad)).toFixed(1);
+    return {
+      icon: '🛒',
+      title: 'El carrito en la rampa',
+      statement: 'Dejas un carrito de <strong>' + m + ' kg</strong> detenido sobre una rampa sin fricción de <strong>' + theta + '°</strong>, sujeto por una cuerda paralela a la rampa para que no ruede.',
+      tip: '💡 Aquí conviene "inclinar la mirada": la Normal ya no apunta recto hacia arriba, sino perpendicular a la rampa. La cuerda sostiene al carrito jalando hacia arriba, siguiendo la rampa.',
+      given: [['Masa (m)', m + ' kg'], ['Ángulo de la rampa (θ)', theta + '°']],
+      correctForces: [
+        {type:'peso', magnitude:w, angleDeg:270}, {type:'normal', magnitude:N, angleDeg:90 + theta}, {type:'tension', magnitude:T, angleDeg:theta}
+      ]
+    };
+  }
+  function genSled(){
+    var m = rnd(3, 10, 1), w = +(m * G).toFixed(1);
+    var theta = rnd(15, 40, 0);
+    var maxF = (0.7 * w) / Math.sin(theta * Math.PI / 180);
+    var F = rnd(5, Math.max(6, maxF), 1);
+    var N = +(w - F * Math.sin(theta * Math.PI / 180)).toFixed(1);
+    if(N < 0.5) N = 0.5;
+    return {
+      icon: '🛷',
+      title: 'El trineo en la nieve',
+      statement: 'Jalas un trineo de <strong>' + m + ' kg</strong> con una cuerda que forma un ángulo de <strong>' + theta + '°</strong> sobre la horizontal, con una fuerza de <strong>' + F + ' N</strong> (sin fricción con la nieve).',
+      tip: '💡 Como jalas un poco "hacia arriba", ayudas a levantar el trineo: la Normal de la nieve se hace más chica que el peso, porque parte del peso ya lo sostiene tu cuerda.',
+      given: [['Masa (m)', m + ' kg'], ['Fuerza aplicada (F)', F + ' N'], ['Ángulo (θ)', theta + '°']],
+      correctForces: [
+        {type:'peso', magnitude:w, angleDeg:270}, {type:'aplicada', magnitude:F, angleDeg:theta}, {type:'normal', magnitude:N, angleDeg:90}
+      ]
+    };
+  }
+  function genBackpackScale(){
+    var m = rnd(1, 8, 1), w = +(m * G).toFixed(1);
+    return {
+      icon: '🎒',
+      title: 'La mochila en la balanza',
+      statement: 'Cuelgas una mochila de <strong>' + m + ' kg</strong> de una balanza de resorte para pesarla. La mochila cuelga quieta.',
+      tip: '💡 El resorte se estira hasta jalar hacia arriba con la fuerza justa para equilibrar el peso: por eso la aguja de la balanza deja de moverse.',
+      given: [['Masa (m)', m + ' kg'], ['Gravedad (g)', '9.8 m/s²']],
+      correctForces: [ {type:'peso', magnitude:w, angleDeg:270}, {type:'elastica', magnitude:w, angleDeg:90} ]
+    };
+  }
+  function genElevatorUp(){
+    var m = rnd(40, 90, 0), a = rnd(0.5, 3, 1), w = +(m * G).toFixed(1);
+    var N = +(m * (G + a)).toFixed(1);
+    return {
+      icon: '🛗',
+      title: 'El ascensor que acelera hacia arriba',
+      statement: 'Estás de pie dentro de un ascensor que empieza a subir, acelerando hacia arriba a <strong>' + a + ' m/s²</strong>. Tu masa es <strong>' + m + ' kg</strong>.',
+      tip: '💡 Cuando el ascensor acelera hacia arriba, el piso te empuja más fuerte de lo normal (por eso te "sientes más pesado" un instante). Usa ΣF = m·a: N − W = m·a.',
+      given: [['Masa (m)', m + ' kg'], ['Aceleración (a)', a + ' m/s²']],
+      correctForces: [ {type:'peso', magnitude:w, angleDeg:270}, {type:'normal', magnitude:N, angleDeg:90} ]
+    };
+  }
+  function genElevatorDown(){
+    var m = rnd(40, 90, 0), a = rnd(0.5, 3, 1), w = +(m * G).toFixed(1);
+    var N = +(m * (G - a)).toFixed(1);
+    return {
+      icon: '🛗',
+      title: 'El ascensor que empieza a bajar',
+      statement: 'El ascensor donde estás empieza a <strong>bajar</strong>, acelerando hacia abajo a <strong>' + a + ' m/s²</strong>. Tu masa es <strong>' + m + ' kg</strong>.',
+      tip: '💡 Esta vez pasa lo contrario: el piso te empuja con menos fuerza de lo normal, por eso sientes ese "vacío" en el estómago al bajar.',
+      given: [['Masa (m)', m + ' kg'], ['Aceleración (a)', a + ' m/s²']],
+      correctForces: [ {type:'peso', magnitude:w, angleDeg:270}, {type:'normal', magnitude:N, angleDeg:90} ]
+    };
+  }
+  function genPushWallFriction(){
+    var m = rnd(1, 5, 1), F = rnd(10, 40, 1), w = +(m * G).toFixed(1);
+    return {
+      icon: '🧱',
+      title: 'La tabla contra la pared',
+      statement: 'Empujas una tabla de <strong>' + m + ' kg</strong> horizontalmente contra una pared vertical con una fuerza de <strong>' + F + ' N</strong>, y esta se queda pegada, sin caer.',
+      tip: '💡 Aquí la fricción no es horizontal como de costumbre: actúa hacia arriba, evitando que la gravedad la haga caer. La pared "devuelve" tu empujón como fuerza Normal.',
+      given: [['Masa (m)', m + ' kg'], ['Fuerza aplicada (F)', F + ' N']],
+      correctForces: [
+        {type:'peso', magnitude:w, angleDeg:270}, {type:'aplicada', magnitude:F, angleDeg:0},
+        {type:'normal', magnitude:F, angleDeg:180}, {type:'friccion', magnitude:w, angleDeg:90}
+      ]
+    };
+  }
+  function genPictureFrameRopes(){
+    var m = rnd(1, 6, 1), theta = rnd(20, 50, 0), w = +(m * G).toFixed(1);
+    var rad = theta * Math.PI / 180;
+    var T = +(w / (2 * Math.cos(rad))).toFixed(1);
+    return {
+      icon: '🖼️',
+      title: 'El cuadro con dos cuerdas',
+      statement: 'Un cuadro de <strong>' + m + ' kg</strong> cuelga del techo sostenido por dos cuerdas idénticas, cada una inclinada <strong>' + theta + '°</strong> respecto a la vertical.',
+      tip: '💡 Por simetría, ambas cuerdas jalan con la misma fuerza. Entre las dos deben sostener todo el peso, así que cada una carga un poco más que la mitad (porque tiran en ángulo, no recto hacia arriba).',
+      given: [['Masa (m)', m + ' kg'], ['Ángulo de cada cuerda (θ)', theta + '°']],
+      correctForces: [
+        {type:'peso', magnitude:w, angleDeg:270},
+        {type:'tension', magnitude:T, angleDeg:90 - theta},
+        {type:'tension', magnitude:T, angleDeg:90 + theta}
+      ]
+    };
+  }
+  function genSlideNoRope(){
+    var m = rnd(2, 10, 1), theta = rnd(15, 55, 0), w = +(m * G).toFixed(1);
+    var N = +(w * Math.cos(theta * Math.PI / 180)).toFixed(1);
+    return {
+      icon: '🛝',
+      title: 'La caja en el tobogán',
+      statement: 'Sueltas una caja de <strong>' + m + ' kg</strong> en un tobogán sin fricción de <strong>' + theta + '°</strong> y esta empieza a deslizar hacia abajo. Dibuja las fuerzas que actúan sobre ella en ese instante.',
+      tip: '💡 Que esté acelerando no significa que le falten fuerzas por dibujar: solo hay dos fuerzas reales actuando (peso y Normal); su suma simplemente no da cero.',
+      given: [['Masa (m)', m + ' kg'], ['Ángulo del tobogán (θ)', theta + '°']],
+      correctForces: [ {type:'peso', magnitude:w, angleDeg:270}, {type:'normal', magnitude:N, angleDeg:90 + theta} ]
+    };
+  }
+  var TEMPLATES = [
+    genHangingPot, genBookOnTable, genPushingBox, genCartOnRamp, genSled,
+    genBackpackScale, genElevatorUp, genElevatorDown, genPushWallFriction,
+    genPictureFrameRopes, genSlideNoRope
+  ];
+  function shuffle(arr){
+    var a = arr.slice();
+    for(var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+  var EXAM_SIZE = 8;
+  function buildExamQuestions(){
+    return shuffle(TEMPLATES).slice(0, EXAM_SIZE).map(function(fn){ return fn(); });
+  }
 
-/* ============ Scroll-reveal for cards ============ */
-if('IntersectionObserver' in window){
-  const revealObserver = new IntersectionObserver((entries)=>{
-    entries.forEach(entry=>{
-      if(entry.isIntersecting){
-        entry.target.classList.add('revealed');
-        revealObserver.unobserve(entry.target);
+  function verify(ex, studentForces){
+    studentForces = studentForces || [];
+    var used = {};
+    var points = 0;
+    var details = [];
+    ex.correctForces.forEach(function(cf){
+      var best = null, bestErr = Infinity, bestIdx = -1;
+      studentForces.forEach(function(sf, idx){
+        if(used[idx]) return;
+        if(sf.typeKey !== cf.type) return;
+        var magErr = Math.abs(sf.magnitude - cf.magnitude) / cf.magnitude;
+        var angErr = Math.abs(sf.angleDeg - cf.angleDeg) % 360;
+        if(angErr > 180) angErr = 360 - angErr;
+        var err = magErr * 2 + angErr / 180;
+        if(err < bestErr){ bestErr = err; best = sf; bestIdx = idx; }
+      });
+      var typeLabel = FORCE_TYPES[cf.type].label;
+      if(!best){
+        details.push({status:'missing', text:'Falta la fuerza ' + typeLabel + ' (≈ ' + cf.magnitude + ' N).'});
+        return;
       }
-    });
-  }, {threshold:0.1});
-  document.querySelectorAll('.card, .kids-card').forEach(c=>revealObserver.observe(c));
-} else {
-  document.querySelectorAll('.card, .kids-card').forEach(c=>c.classList.add('revealed'));
-}
-
-/* ============ Helper: pop-in animation retrigger ============ */
-function popAnimate(el){
-  el.classList.remove('pop-in');
-  void el.offsetWidth;
-  el.classList.add('pop-in');
-}
-
-const G = 9.8;
-
-/* Helper: draw a grid-paper style axis box on a small graph canvas */
-function drawGraphAxes(ctx, w, h, pad){
-  ctx.clearRect(0,0,w,h);
-  ctx.strokeStyle = 'rgba(147,160,184,0.35)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(pad, h-pad); ctx.lineTo(w-pad, h-pad); // x axis
-  ctx.moveTo(pad, pad); ctx.lineTo(pad, h-pad); // y axis
-  ctx.stroke();
-}
-
-function fmt(n, d=1){ return n.toFixed(d); }
-
-/* ============ Decoration helpers (clouds, sky, grass, emoji) ============ */
-function fillSky(ctx, W, H, top, bottom, endY){
-  const g = ctx.createLinearGradient(0,0,0, endY||H);
-  g.addColorStop(0, top);
-  g.addColorStop(1, bottom);
-  ctx.fillStyle = g;
-  ctx.fillRect(0,0,W,H);
-}
-
-function drawClouds(ctx, spots){
-  const time = Date.now()/1000;
-  ctx.save();
-  ctx.textBaseline = 'middle';
-  spots.forEach((c,i)=>{
-    const drift = Math.sin(time*0.18 + i*2.1) * (c.range||18);
-    ctx.globalAlpha = c.alpha!==undefined ? c.alpha : 0.7;
-    ctx.font = (c.size||24)+'px sans-serif';
-    ctx.fillText('☁️', c.x + drift, c.y);
-  });
-  ctx.restore();
-}
-
-function drawSparkles(ctx, spots){
-  const time = Date.now()/1000;
-  ctx.save();
-  ctx.textBaseline='middle';
-  spots.forEach((s,i)=>{
-    const twinkle = 0.45 + 0.35*Math.abs(Math.sin(time*0.7 + i*1.7));
-    ctx.globalAlpha = twinkle;
-    ctx.font = (s.size||14)+'px sans-serif';
-    ctx.fillText('✨', s.x, s.y);
-  });
-  ctx.restore();
-}
-
-function drawGrass(ctx, W, groundY, H, colorTop, colorBot){
-  const g = ctx.createLinearGradient(0, groundY, 0, H);
-  g.addColorStop(0, colorTop||'#8fca7c');
-  g.addColorStop(1, colorBot||'#5da34c');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, groundY, W, Math.max(0,H-groundY));
-  ctx.strokeStyle = 'rgba(35,60,25,0.35)';
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(0,groundY); ctx.lineTo(W,groundY); ctx.stroke();
-}
-
-function drawEmoji(ctx, emoji, px, py, size, glow, flip){
-  ctx.save();
-  ctx.font = size+'px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  if(glow){ ctx.shadowColor = glow; ctx.shadowBlur = 14; }
-  if(flip){
-    ctx.translate(px, py);
-    ctx.scale(-1,1);
-    ctx.fillText(emoji, 0, 0);
-  } else {
-    ctx.fillText(emoji, px, py);
-  }
-  ctx.restore();
-}
-
-/* ==========================================================
-   MRU SIMULATION
-   ========================================================== */
-(function(){
-  const canvas = document.getElementById('mru-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-
-  const gx = document.getElementById('mru-graph-x');
-  const gxCtx = gx.getContext('2d');
-  const gv = document.getElementById('mru-graph-v');
-  const gvCtx = gv.getContext('2d');
-
-  const x0Slider = document.getElementById('mru-x0');
-  const vSlider = document.getElementById('mru-v');
-  const x0ValEl = document.getElementById('mru-x0-val');
-  const vValEl = document.getElementById('mru-v-val');
-  const playBtn = document.getElementById('mru-play');
-  const resetBtn = document.getElementById('mru-reset');
-  const tEl = document.getElementById('mru-t');
-  const xEl = document.getElementById('mru-x');
-  const vrEl = document.getElementById('mru-vr');
-
-  let x0 = parseFloat(x0Slider.value);
-  let v = parseFloat(vSlider.value);
-  let t = 0, playing = false, rafId = null, lastTs = null;
-  const WORLD_MIN = -55, WORLD_MAX = 55; // meters mapped to track
-  const TMAX = 10; // seconds shown on graph window
-
-  function worldToPx(xw){
-    const pad = 24;
-    return pad + (xw - WORLD_MIN) / (WORLD_MAX - WORLD_MIN) * (W - 2*pad);
-  }
-
-  function drawTrack(xw){
-    const roadY = H*0.66;
-    fillSky(ctx, W, H, '#8fd0f5', '#dff1fb', roadY-24);
-    drawClouds(ctx, [
-      {x:W*0.12, y:26, size:24, alpha:0.85},
-      {x:W*0.55, y:44, size:30, alpha:0.8},
-      {x:W*0.82, y:22, size:20, alpha:0.75}
-    ]);
-    // road band
-    const roadTop = roadY-22, roadBot = roadY+22;
-    ctx.fillStyle = '#4a5468';
-    ctx.fillRect(0, roadTop, W, roadBot-roadTop);
-    // dashed centerline
-    ctx.strokeStyle = 'rgba(255,255,255,0.75)';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([14,10]);
-    ctx.beginPath(); ctx.moveTo(0, roadY); ctx.lineTo(W, roadY); ctx.stroke();
-    ctx.setLineDash([]);
-    // grass below road
-    drawGrass(ctx, W, roadBot, H);
-
-    // ticks + labels (above the road, on the sky)
-    ctx.fillStyle = 'rgba(20,35,55,0.65)';
-    ctx.font = '10px JetBrains Mono, monospace';
-    ctx.textAlign = 'center';
-    for(let m=-50; m<=50; m+=10){
-      const px = worldToPx(m);
-      ctx.strokeStyle='rgba(20,35,55,0.25)';
-      ctx.beginPath(); ctx.moveTo(px, roadTop-6); ctx.lineTo(px, roadTop); ctx.stroke();
-      ctx.fillText(m+'m', px, roadTop-14);
-    }
-    // origin marker
-    const ox = worldToPx(0);
-    ctx.strokeStyle = 'rgba(255,180,84,0.8)';
-    ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(ox, roadTop-2); ctx.lineTo(ox, roadBot+2); ctx.stroke();
-
-    // car
-    const px = worldToPx(Math.max(WORLD_MIN, Math.min(WORLD_MAX, xw)));
-    drawEmoji(ctx, '🚗', px, roadY-2, 30, 'rgba(0,0,0,0.35)', v>=0);
-  }
-
-  function drawGraphs(){
-    const w=gx.width, h=gx.height, pad=26;
-    drawGraphAxes(gxCtx, w, h, pad);
-    drawGraphAxes(gvCtx, w, h, pad);
-
-    // x-t graph: line from t=0..TMAX
-    const xAtStart = x0;
-    const xAtEnd = x0 + v*TMAX;
-    const yMin = Math.min(WORLD_MIN, xAtStart, xAtEnd);
-    const yMax = Math.max(WORLD_MAX*0 + 0, xAtStart, xAtEnd); // will fix below
-    const lo = Math.min(xAtStart, xAtEnd, -10);
-    const hi = Math.max(xAtStart, xAtEnd, 10);
-    function xPx(tt){ return pad + tt/TMAX*(w-2*pad); }
-    function yPx(val, lo, hi){ return h-pad - (val-lo)/(hi-lo)*(h-2*pad); }
-
-    gxCtx.strokeStyle = '#7fe7c4';
-    gxCtx.lineWidth = 2;
-    gxCtx.beginPath();
-    gxCtx.moveTo(xPx(0), yPx(xAtStart, lo, hi));
-    gxCtx.lineTo(xPx(TMAX), yPx(xAtEnd, lo, hi));
-    gxCtx.stroke();
-    // marker
-    const curX = x0 + v*t;
-    gxCtx.fillStyle = '#ffb454';
-    gxCtx.beginPath();
-    gxCtx.arc(xPx(Math.min(t,TMAX)), yPx(Math.max(lo,Math.min(hi,curX)), lo, hi), 4, 0, Math.PI*2);
-    gxCtx.fill();
-
-    // v-t graph: horizontal line
-    const vlo = Math.min(v, -5, 0)-2, vhi = Math.max(v, 5, 0)+2;
-    gvCtx.strokeStyle = '#6ea8fe';
-    gvCtx.lineWidth = 2;
-    gvCtx.beginPath();
-    gvCtx.moveTo(xPx(0), yPx(v, vlo, vhi));
-    gvCtx.lineTo(xPx(TMAX), yPx(v, vlo, vhi));
-    gvCtx.stroke();
-    gvCtx.fillStyle = '#ffb454';
-    gvCtx.beginPath();
-    gvCtx.arc(xPx(Math.min(t,TMAX)), yPx(v, vlo, vhi), 4, 0, Math.PI*2);
-    gvCtx.fill();
-  }
-
-  function updateReadout(){
-    const x = x0 + v*t;
-    tEl.textContent = fmt(t)+' s';
-    xEl.textContent = fmt(x)+' m';
-    vrEl.textContent = fmt(v)+' m/s';
-  }
-
-  function render(){
-    const x = x0 + v*t;
-    drawTrack(x);
-    drawGraphs();
-    updateReadout();
-  }
-
-  function step(ts){
-    if(!playing) return;
-    if(lastTs===null) lastTs = ts;
-    const dt = (ts-lastTs)/1000;
-    lastTs = ts;
-    t += dt;
-    const x = x0 + v*t;
-    if(t>TMAX || x < WORLD_MIN-5 || x > WORLD_MAX+5){
-      playing = false;
-      playBtn.textContent = '▶ Reproducir';
-      render();
-      return;
-    }
-    render();
-    rafId = requestAnimationFrame(step);
-  }
-
-  playBtn.addEventListener('click', ()=>{
-    playing = !playing;
-    if(playing){
-      playBtn.textContent = '⏸ Pausar';
-      lastTs = null;
-      rafId = requestAnimationFrame(step);
-    } else {
-      playBtn.textContent = '▶ Reproducir';
-      cancelAnimationFrame(rafId);
-    }
-  });
-  resetBtn.addEventListener('click', ()=>{
-    playing = false;
-    playBtn.textContent = '▶ Reproducir';
-    cancelAnimationFrame(rafId);
-    t = 0;
-    render();
-  });
-  x0Slider.addEventListener('input', ()=>{
-    x0 = parseFloat(x0Slider.value);
-    x0ValEl.textContent = x0+' m';
-    if(!playing) render();
-  });
-  vSlider.addEventListener('input', ()=>{
-    v = parseFloat(vSlider.value);
-    vValEl.textContent = v+' m/s';
-    if(!playing) render();
-  });
-
-  render();
-})();
-
-/* ==========================================================
-   MRUV SIMULATION (linear motion with constant acceleration)
-   ========================================================== */
-(function(){
-  const canvas = document.getElementById('mruv-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-
-  const gx = document.getElementById('mruv-graph-x');
-  const gxCtx = gx.getContext('2d');
-  const gv = document.getElementById('mruv-graph-v');
-  const gvCtx = gv.getContext('2d');
-
-  const v0Slider = document.getElementById('mruv-v0');
-  const aSlider = document.getElementById('mruv-a');
-  const v0ValEl = document.getElementById('mruv-v0-val');
-  const aValEl = document.getElementById('mruv-a-val');
-  const playBtn = document.getElementById('mruv-play');
-  const resetBtn = document.getElementById('mruv-reset');
-  const tEl = document.getElementById('mruv-t');
-  const xEl = document.getElementById('mruv-x');
-  const vrEl = document.getElementById('mruv-vr');
-
-  let v0 = parseFloat(v0Slider.value);
-  let a = parseFloat(aSlider.value);
-  let t = 0, playing = false, rafId = null, lastTs = null;
-  const WORLD_MIN = -20, WORLD_MAX = 100;
-  const TMAX = 8;
-
-  function xOf(tt){ return v0*tt + 0.5*a*tt*tt; }
-  function vOf(tt){ return v0 + a*tt; }
-
-  function worldToPx(xw){
-    const pad = 24;
-    return pad + (xw - WORLD_MIN) / (WORLD_MAX - WORLD_MIN) * (W - 2*pad);
-  }
-
-  function drawTrack(xw){
-    const roadY = H*0.66;
-    fillSky(ctx, W, H, '#8fd0f5', '#dff1fb', roadY-24);
-    drawClouds(ctx, [
-      {x:W*0.18, y:28, size:26, alpha:0.85},
-      {x:W*0.6, y:42, size:32, alpha:0.8},
-      {x:W*0.85, y:20, size:18, alpha:0.7}
-    ]);
-    const roadTop = roadY-22, roadBot = roadY+22;
-    ctx.fillStyle = '#4a5468';
-    ctx.fillRect(0, roadTop, W, roadBot-roadTop);
-    ctx.strokeStyle = 'rgba(255,255,255,0.75)';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([14,10]);
-    ctx.beginPath(); ctx.moveTo(0, roadY); ctx.lineTo(W, roadY); ctx.stroke();
-    ctx.setLineDash([]);
-    drawGrass(ctx, W, roadBot, H);
-
-    ctx.fillStyle = 'rgba(20,35,55,0.65)';
-    ctx.font = '10px JetBrains Mono, monospace';
-    ctx.textAlign = 'center';
-    for(let m=-20; m<=100; m+=20){
-      const px = worldToPx(m);
-      ctx.strokeStyle='rgba(20,35,55,0.25)';
-      ctx.beginPath(); ctx.moveTo(px, roadTop-6); ctx.lineTo(px, roadTop); ctx.stroke();
-      ctx.fillText(m+'m', px, roadTop-14);
-    }
-    const ox = worldToPx(0);
-    ctx.strokeStyle = 'rgba(255,180,84,0.8)';
-    ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(ox, roadTop-2); ctx.lineTo(ox, roadBot+2); ctx.stroke();
-
-    const px = worldToPx(Math.max(WORLD_MIN, Math.min(WORLD_MAX, xw)));
-    drawEmoji(ctx, '🏎️', px, roadY-2, 32, 'rgba(0,0,0,0.35)', vOf(t)>=0);
-  }
-
-  function drawGraphs(){
-    const w=gx.width, h=gx.height, pad=26;
-    drawGraphAxes(gxCtx, w, h, pad);
-    drawGraphAxes(gvCtx, w, h, pad);
-
-    const N=40;
-    const pts=[];
-    for(let i=0;i<=N;i++){
-      const tt = TMAX*i/N;
-      pts.push([tt, xOf(tt)]);
-    }
-    const ys = pts.map(p=>p[1]);
-    const lo = Math.min(0, ...ys, -5), hi = Math.max(0, ...ys, 5);
-    function xPx(tt){ return pad + tt/TMAX*(w-2*pad); }
-    function yPxX(val){ return h-pad - (val-lo)/(hi-lo)*(h-2*pad); }
-
-    gxCtx.strokeStyle = '#7fe7c4';
-    gxCtx.lineWidth = 2;
-    gxCtx.beginPath();
-    pts.forEach((p,i)=>{ i===0? gxCtx.moveTo(xPx(p[0]),yPxX(p[1])) : gxCtx.lineTo(xPx(p[0]),yPxX(p[1])); });
-    gxCtx.stroke();
-    const curT = Math.min(t,TMAX);
-    gxCtx.fillStyle='#ffb454';
-    gxCtx.beginPath(); gxCtx.arc(xPx(curT), yPxX(xOf(curT)), 4,0,Math.PI*2); gxCtx.fill();
-
-    const vStart = v0, vEnd = vOf(TMAX);
-    const vlo = Math.min(vStart,vEnd,-2)-2, vhi = Math.max(vStart,vEnd,2)+2;
-    function yPxV(val){ return h-pad - (val-vlo)/(vhi-vlo)*(h-2*pad); }
-    gvCtx.strokeStyle='#6ea8fe';
-    gvCtx.lineWidth=2;
-    gvCtx.beginPath();
-    gvCtx.moveTo(xPx(0), yPxV(vStart));
-    gvCtx.lineTo(xPx(TMAX), yPxV(vEnd));
-    gvCtx.stroke();
-    gvCtx.fillStyle='#ffb454';
-    gvCtx.beginPath(); gvCtx.arc(xPx(curT), yPxV(vOf(curT)), 4,0,Math.PI*2); gvCtx.fill();
-    if(vlo<0 && vhi>0){
-      gvCtx.strokeStyle='rgba(147,160,184,0.25)';
-      gvCtx.beginPath(); gvCtx.moveTo(pad, yPxV(0)); gvCtx.lineTo(w-pad, yPxV(0)); gvCtx.stroke();
-    }
-  }
-
-  function updateReadout(){
-    tEl.textContent = fmt(t)+' s';
-    xEl.textContent = fmt(xOf(t))+' m';
-    vrEl.textContent = fmt(vOf(t))+' m/s';
-  }
-
-  function render(){
-    drawTrack(xOf(t));
-    drawGraphs();
-    updateReadout();
-  }
-
-  function step(ts){
-    if(!playing) return;
-    if(lastTs===null) lastTs=ts;
-    const dt=(ts-lastTs)/1000;
-    lastTs=ts;
-    t+=dt;
-    const x = xOf(t);
-    if(t>TMAX || x<WORLD_MIN-5 || x>WORLD_MAX+5){
-      t = Math.min(t,TMAX);
-      playing=false;
-      playBtn.textContent='▶ Reproducir';
-      render();
-      return;
-    }
-    render();
-    rafId=requestAnimationFrame(step);
-  }
-
-  playBtn.addEventListener('click', ()=>{
-    playing=!playing;
-    if(playing){
-      if(t>=TMAX) t=0;
-      playBtn.textContent='⏸ Pausar';
-      lastTs=null;
-      rafId=requestAnimationFrame(step);
-    } else {
-      playBtn.textContent='▶ Reproducir';
-      cancelAnimationFrame(rafId);
-    }
-  });
-  resetBtn.addEventListener('click', ()=>{
-    playing=false;
-    playBtn.textContent='▶ Reproducir';
-    cancelAnimationFrame(rafId);
-    t=0;
-    render();
-  });
-  v0Slider.addEventListener('input', ()=>{
-    v0=parseFloat(v0Slider.value);
-    v0ValEl.textContent=v0+' m/s';
-    t=0;
-    if(!playing) render();
-  });
-  aSlider.addEventListener('input', ()=>{
-    a=parseFloat(aSlider.value);
-    aValEl.textContent=a+' m/s²';
-    t=0;
-    if(!playing) render();
-  });
-
-  render();
-})();
-
-/* ==========================================================
-   VERTICAL MOTION FACTORY (used for Caída libre and Lanzamiento vertical)
-   ========================================================== */
-function createVerticalSim(cfg){
-  const canvas = document.getElementById(cfg.prefix+'-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-
-  const gy = document.getElementById(cfg.prefix+'-graph-y');
-  const gyCtx = gy.getContext('2d');
-  const gv = document.getElementById(cfg.prefix+'-graph-v');
-  const gvCtx = gv.getContext('2d');
-
-  const h0Slider = cfg.h0Slider ? document.getElementById(cfg.h0Slider) : null;
-  const v0Slider = cfg.v0Slider ? document.getElementById(cfg.v0Slider) : null;
-  const h0ValEl = cfg.h0ValEl ? document.getElementById(cfg.h0ValEl) : null;
-  const v0ValEl = cfg.v0ValEl ? document.getElementById(cfg.v0ValEl) : null;
-  const playBtn = document.getElementById(cfg.prefix+'-play');
-  const resetBtn = document.getElementById(cfg.prefix+'-reset');
-  const tEl = document.getElementById(cfg.prefix+'-t');
-  const yEl = document.getElementById(cfg.prefix+'-y');
-  const vrEl = document.getElementById(cfg.prefix+'-vr');
-
-  let h0 = h0Slider ? parseFloat(h0Slider.value) : cfg.h0Fixed;
-  let v0 = v0Slider ? parseFloat(v0Slider.value) : cfg.v0Fixed;
-  let t = 0, playing = false, rafId = null, lastTs = null;
-  let Tland = 0;
-
-  function computeLandTime(){
-    const a = -0.5*G, b = v0, c = h0;
-    const disc = b*b - 4*a*c;
-    const r1 = (-b + Math.sqrt(disc))/(2*a);
-    const r2 = (-b - Math.sqrt(disc))/(2*a);
-    return Math.max(r1, r2);
-  }
-  function yOf(tt){ return h0 + v0*tt - 0.5*G*tt*tt; }
-  function vOf(tt){ return v0 - G*tt; }
-
-  const maxScaleHeight = cfg.maxScaleHeight || 90;
-
-  function worldYToPx(yw){
-    const padTop=16, padBot=36;
-    const usable = H - padTop - padBot;
-    return padTop + usable * (1 - yw/maxScaleHeight);
-  }
-
-  function drawScene(){
-    const groundPx = worldYToPx(0);
-    fillSky(ctx, W, H, '#8fd0f5', '#dff1fb', groundPx);
-    drawClouds(ctx, [
-      {x:W*0.16, y:36, size:26, alpha:0.85},
-      {x:W*0.52, y:64, size:34, alpha:0.75},
-      {x:W*0.82, y:30, size:20, alpha:0.7}
-    ]);
-    drawGrass(ctx, W, groundPx, H);
-    ctx.fillStyle='rgba(20,35,55,0.7)';
-    ctx.font='10px JetBrains Mono, monospace';
-    ctx.fillText('suelo (0 m)', 8, groundPx+16);
-
-    for(let m=0; m<=maxScaleHeight; m+=10){
-      const py = worldYToPx(m);
-      ctx.strokeStyle='rgba(20,35,55,0.14)';
-      ctx.beginPath(); ctx.moveTo(0,py); ctx.lineTo(W,py); ctx.stroke();
-      ctx.fillStyle='rgba(20,35,55,0.55)';
-      ctx.fillText(m+'m', W-40, py-4);
-    }
-
-    if(h0>0){
-      const h0Px = worldYToPx(h0);
-      ctx.strokeStyle='rgba(255,150,60,0.55)';
-      ctx.setLineDash([4,4]);
-      ctx.beginPath(); ctx.moveTo(0,h0Px); ctx.lineTo(W,h0Px); ctx.stroke();
-      ctx.setLineDash([]);
-    }
-
-    const curY = Math.max(0, yOf(Math.min(t,Tland)));
-    const ballPx = worldYToPx(curY);
-    const cx = W/2;
-    ctx.strokeStyle='rgba(255,255,255,0.55)';
-    ctx.lineWidth=2;
-    ctx.setLineDash([3,5]);
-    ctx.beginPath();
-    ctx.moveTo(cx, worldYToPx(h0));
-    ctx.lineTo(cx, ballPx);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    drawEmoji(ctx, cfg.emoji||'🪨', cx, ballPx, cfg.emojiSize||30, 'rgba(0,0,0,0.3)');
-  }
-
-  function drawGraphs(){
-    const w=gy.width, h=gy.height, pad=26;
-    drawGraphAxes(gyCtx, w, h, pad);
-    drawGraphAxes(gvCtx, w, h, pad);
-
-    const N = 40;
-    const pts = [];
-    for(let i=0;i<=N;i++){
-      const tt = Tland * i/N;
-      pts.push([tt, Math.max(0,yOf(tt))]);
-    }
-    const yhi = Math.max(h0, ...pts.map(p=>p[1])) + 2;
-    function xPx(tt){ return pad + (tt/Tland)*(w-2*pad); }
-    function yPxY(val){ return h-pad - (val/yhi)*(h-2*pad); }
-
-    gyCtx.strokeStyle='#7fe7c4';
-    gyCtx.lineWidth=2;
-    gyCtx.beginPath();
-    pts.forEach((p,i)=>{ i===0? gyCtx.moveTo(xPx(p[0]), yPxY(p[1])) : gyCtx.lineTo(xPx(p[0]), yPxY(p[1])); });
-    gyCtx.stroke();
-    const curYv = Math.max(0,yOf(Math.min(t,Tland)));
-    gyCtx.fillStyle='#ffb454';
-    gyCtx.beginPath(); gyCtx.arc(xPx(Math.min(t,Tland)), yPxY(curYv), 4,0,Math.PI*2); gyCtx.fill();
-
-    const vStart = v0, vEnd = vOf(Tland);
-    const vlo = Math.min(vStart, vEnd)-2, vhi = Math.max(vStart, vEnd)+2;
-    function yPxV(val){ return h-pad - (val-vlo)/(vhi-vlo)*(h-2*pad); }
-    gvCtx.strokeStyle='#6ea8fe';
-    gvCtx.lineWidth=2;
-    gvCtx.beginPath();
-    gvCtx.moveTo(xPx(0), yPxV(vStart));
-    gvCtx.lineTo(xPx(Tland), yPxV(vEnd));
-    gvCtx.stroke();
-    const curV = vOf(Math.min(t,Tland));
-    gvCtx.fillStyle='#ffb454';
-    gvCtx.beginPath(); gvCtx.arc(xPx(Math.min(t,Tland)), yPxV(curV), 4,0,Math.PI*2); gvCtx.fill();
-    if(vlo<0 && vhi>0){
-      gvCtx.strokeStyle='rgba(147,160,184,0.25)';
-      gvCtx.beginPath(); gvCtx.moveTo(pad, yPxV(0)); gvCtx.lineTo(w-pad, yPxV(0)); gvCtx.stroke();
-    }
-  }
-
-  function updateReadout(){
-    const y = Math.max(0,yOf(Math.min(t,Tland)));
-    const v = vOf(Math.min(t,Tland));
-    tEl.textContent = fmt(t)+' s';
-    yEl.textContent = fmt(y)+' m';
-    vrEl.textContent = fmt(v)+' m/s';
-  }
-
-  function render(){
-    drawScene();
-    drawGraphs();
-    updateReadout();
-  }
-
-  function recompute(){
-    Tland = computeLandTime();
-  }
-
-  function step(ts){
-    if(!playing) return;
-    if(lastTs===null) lastTs=ts;
-    const dt=(ts-lastTs)/1000;
-    lastTs=ts;
-    t += dt;
-    if(t >= Tland){
-      t = Tland;
-      playing=false;
-      playBtn.textContent='▶ Reproducir';
-      render();
-      return;
-    }
-    render();
-    rafId = requestAnimationFrame(step);
-  }
-
-  playBtn.addEventListener('click', ()=>{
-    playing=!playing;
-    if(playing){
-      if(t>=Tland) t=0;
-      playBtn.textContent='⏸ Pausar';
-      lastTs=null;
-      rafId=requestAnimationFrame(step);
-    } else {
-      playBtn.textContent='▶ Reproducir';
-      cancelAnimationFrame(rafId);
-    }
-  });
-  resetBtn.addEventListener('click', ()=>{
-    playing=false;
-    playBtn.textContent='▶ Reproducir';
-    cancelAnimationFrame(rafId);
-    t=0;
-    render();
-  });
-  if(h0Slider){
-    h0Slider.addEventListener('input', ()=>{
-      h0 = parseFloat(h0Slider.value);
-      if(h0ValEl) h0ValEl.textContent = h0+' m';
-      recompute();
-      t=0;
-      if(!playing) render();
-    });
-  }
-  if(v0Slider){
-    v0Slider.addEventListener('input', ()=>{
-      v0 = parseFloat(v0Slider.value);
-      if(v0ValEl) v0ValEl.textContent = v0+' m/s';
-      recompute();
-      t=0;
-      if(!playing) render();
-    });
-  }
-
-  recompute();
-  render();
-}
-
-/* Caída libre: only height slider, v0 fixed at 0 */
-createVerticalSim({
-  prefix:'fl',
-  h0Slider:'fl-h0', h0ValEl:'fl-h0-val',
-  v0Slider:null, v0ValEl:null, v0Fixed:0,
-  maxScaleHeight:90,
-  emoji:'🪨', emojiSize:30
-});
-
-/* Lanzamiento vertical: only v0 slider, h0 fixed at 0 */
-createVerticalSim({
-  prefix:'lv',
-  h0Slider:null, h0ValEl:null, h0Fixed:0,
-  v0Slider:'lv-v0', v0ValEl:'lv-v0-val',
-  maxScaleHeight:40,
-  emoji:'🏐', emojiSize:30
-});
-
-/* ==========================================================
-   CIRCULAR MOTION FACTORY (used for MCU and MCV)
-   ========================================================== */
-function createCircularSim(cfg){
-  const canvas = document.getElementById(cfg.prefix+'-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-
-  const g1 = document.getElementById(cfg.prefix+'-graph-'+cfg.graph1);
-  const g1Ctx = g1.getContext('2d');
-  const g2 = document.getElementById(cfg.prefix+'-graph-'+cfg.graph2);
-  const g2Ctx = g2.getContext('2d');
-
-  const rSlider = document.getElementById(cfg.prefix+'-r');
-  const rValEl = document.getElementById(cfg.prefix+'-r-val');
-  const w0Slider = document.getElementById(cfg.hasAlpha ? cfg.prefix+'-w0' : cfg.prefix+'-w');
-  const playBtn = document.getElementById(cfg.prefix+'-play');
-  const resetBtn = document.getElementById(cfg.prefix+'-reset');
-  const tEl = document.getElementById(cfg.prefix+'-t');
-  const thEl = document.getElementById(cfg.prefix+'-th');
-
-  let r = parseFloat(rSlider.value);
-  let t = 0, playing=false, rafId=null, lastTs=null;
-
-  const isMCV = !!cfg.hasAlpha;
-  let w0Val, alphaSlider, alphaVal, alphaValEl, w0ValEl, wtOutEl, vtOutEl;
-
-  if(isMCV){
-    w0ValEl = document.getElementById(cfg.prefix+'-w0-val');
-    alphaSlider = document.getElementById(cfg.prefix+'-alpha');
-    alphaValEl = document.getElementById(cfg.prefix+'-alpha-val');
-    wtOutEl = document.getElementById(cfg.prefix+'-w');
-    w0Val = parseFloat(w0Slider.value);
-    alphaVal = parseFloat(alphaSlider.value);
-  } else {
-    vtOutEl = document.getElementById(cfg.prefix+'-vt');
-  }
-
-  function omegaOf(tt){
-    return isMCV ? (w0Val + alphaVal*tt) : parseFloat(w0Slider.value);
-  }
-  function thetaOf(tt){
-    if(isMCV) return w0Val*tt + 0.5*alphaVal*tt*tt;
-    return omegaOf(0)*tt;
-  }
-
-  function drawScene(){
-    fillSky(ctx, W, H, '#cfd6f7', '#f3d9ee');
-    drawSparkles(ctx, [
-      {x:W*0.12, y:H*0.18, size:14}, {x:W*0.85, y:H*0.22, size:12},
-      {x:W*0.2, y:H*0.78, size:12}, {x:W*0.9, y:H*0.7, size:14},
-      {x:W*0.5, y:H*0.12, size:12}
-    ]);
-    drawClouds(ctx, [
-      {x:W*0.1, y:H*0.14, size:20, alpha:0.4},
-      {x:W*0.88, y:H*0.86, size:22, alpha:0.35}
-    ]);
-
-    const cx = W/2, cy = H/2 + 10;
-    const pxPerM = 60;
-    const radiusPx = r*pxPerM;
-
-    // orbit circle
-    ctx.strokeStyle = 'rgba(60,50,90,0.3)';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([5,5]);
-    ctx.beginPath();
-    ctx.arc(cx, cy, radiusPx, 0, Math.PI*2);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // center point
-    ctx.fillStyle = 'rgba(60,50,90,0.5)';
-    ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI*2); ctx.fill();
-
-    const theta = thetaOf(t);
-    const px = cx + radiusPx*Math.cos(theta);
-    const py = cy - radiusPx*Math.sin(theta);
-
-    // radius line
-    ctx.strokeStyle = 'rgba(110,168,254,0.55)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(cx,cy); ctx.lineTo(px,py);
-    ctx.stroke();
-
-    // tangential velocity arrow
-    const w = omegaOf(t);
-    const dirSign = w>=0 ? 1 : -1;
-    const tangX = -Math.sin(theta)*dirSign;
-    const tangY = -Math.cos(theta)*dirSign;
-    const arrowLen = 34;
-    const ax = px + tangX*arrowLen;
-    const ay = py - tangY*arrowLen;
-    ctx.strokeStyle = '#e0791f';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.moveTo(px,py); ctx.lineTo(ax,ay);
-    ctx.stroke();
-    ctx.fillStyle='#e0791f';
-    ctx.beginPath();
-    ctx.arc(ax,ay,3,0,Math.PI*2);
-    ctx.fill();
-
-    // moving emoji marker
-    drawEmoji(ctx, cfg.emoji||'🎠', px, py, 30, 'rgba(0,0,0,0.25)');
-  }
-
-  function drawGraphs(){
-    const w=g1.width, h=g1.height, pad=26;
-    drawGraphAxes(g1Ctx, w, h, pad);
-    drawGraphAxes(g2Ctx, w, h, pad);
-    const TMAX = 8;
-
-    if(isMCV){
-      // g1 = omega-t (linear), g2 = theta-t (curve)
-      const wStart = w0Val, wEnd = omegaOf(TMAX);
-      const wlo = Math.min(wStart,wEnd,-1)-1, whi = Math.max(wStart,wEnd,1)+1;
-      function xPx(tt){ return pad + tt/TMAX*(w-2*pad); }
-      function yPxW(val){ return h-pad - (val-wlo)/(whi-wlo)*(h-2*pad); }
-      g1Ctx.strokeStyle='#6ea8fe'; g1Ctx.lineWidth=2;
-      g1Ctx.beginPath(); g1Ctx.moveTo(xPx(0),yPxW(wStart)); g1Ctx.lineTo(xPx(TMAX),yPxW(wEnd)); g1Ctx.stroke();
-      const curT = Math.min(t,TMAX);
-      g1Ctx.fillStyle='#ffb454';
-      g1Ctx.beginPath(); g1Ctx.arc(xPx(curT), yPxW(omegaOf(curT)),4,0,Math.PI*2); g1Ctx.fill();
-
-      const N=40, pts=[];
-      for(let i=0;i<=N;i++){ const tt=TMAX*i/N; pts.push([tt, thetaOf(tt)]); }
-      const ths = pts.map(p=>p[1]);
-      const thlo = Math.min(0,...ths), thhi = Math.max(0.1,...ths);
-      function yPxTh(val){ return h-pad - (val-thlo)/(thhi-thlo)*(h-2*pad); }
-      g2Ctx.strokeStyle='#7fe7c4'; g2Ctx.lineWidth=2;
-      g2Ctx.beginPath();
-      pts.forEach((p,i)=>{ i===0? g2Ctx.moveTo(xPx(p[0]),yPxTh(p[1])) : g2Ctx.lineTo(xPx(p[0]),yPxTh(p[1])); });
-      g2Ctx.stroke();
-      g2Ctx.fillStyle='#ffb454';
-      g2Ctx.beginPath(); g2Ctx.arc(xPx(curT), yPxTh(thetaOf(curT)),4,0,Math.PI*2); g2Ctx.fill();
-    } else {
-      // g1 = theta-t (linear), g2 = omega-t (constant)
-      const w0c = omegaOf(0);
-      const thEnd = thetaOf(TMAX);
-      const thlo = Math.min(0,thEnd), thhi = Math.max(0.1,thEnd);
-      function xPx(tt){ return pad + tt/TMAX*(w-2*pad); }
-      function yPxTh(val){ return h-pad - (val-thlo)/(thhi-thlo)*(h-2*pad); }
-      g1Ctx.strokeStyle='#7fe7c4'; g1Ctx.lineWidth=2;
-      g1Ctx.beginPath(); g1Ctx.moveTo(xPx(0),yPxTh(0)); g1Ctx.lineTo(xPx(TMAX),yPxTh(thEnd)); g1Ctx.stroke();
-      const curT = Math.min(t,TMAX);
-      g1Ctx.fillStyle='#ffb454';
-      g1Ctx.beginPath(); g1Ctx.arc(xPx(curT), yPxTh(thetaOf(curT)),4,0,Math.PI*2); g1Ctx.fill();
-
-      const wlo = Math.min(0,w0c)-1, whi = Math.max(0.1,w0c)+1;
-      function yPxW(val){ return h-pad - (val-wlo)/(whi-wlo)*(h-2*pad); }
-      g2Ctx.strokeStyle='#6ea8fe'; g2Ctx.lineWidth=2;
-      g2Ctx.beginPath(); g2Ctx.moveTo(xPx(0),yPxW(w0c)); g2Ctx.lineTo(xPx(TMAX),yPxW(w0c)); g2Ctx.stroke();
-      g2Ctx.fillStyle='#ffb454';
-      g2Ctx.beginPath(); g2Ctx.arc(xPx(curT), yPxW(w0c),4,0,Math.PI*2); g2Ctx.fill();
-    }
-  }
-
-  function updateReadout(){
-    const theta = thetaOf(t);
-    const deg = ((theta*180/Math.PI) % 360 + 360) % 360;
-    tEl.textContent = fmt(t)+' s';
-    thEl.textContent = fmt(deg,1)+'°';
-    if(isMCV){
-      wtOutEl.textContent = fmt(omegaOf(t),2)+' rad/s';
-    } else {
-      vtOutEl.textContent = fmt(omegaOf(t)*r,2)+' m/s';
-    }
-  }
-
-  function render(){
-    drawScene();
-    drawGraphs();
-    updateReadout();
-  }
-
-  function step(ts){
-    if(!playing) return;
-    if(lastTs===null) lastTs=ts;
-    const dt=(ts-lastTs)/1000;
-    lastTs=ts;
-    t += dt;
-    render();
-    rafId = requestAnimationFrame(step);
-  }
-
-  playBtn.addEventListener('click', ()=>{
-    playing=!playing;
-    if(playing){
-      playBtn.textContent='⏸ Pausar';
-      lastTs=null;
-      rafId=requestAnimationFrame(step);
-    } else {
-      playBtn.textContent='▶ Reproducir';
-      cancelAnimationFrame(rafId);
-    }
-  });
-  resetBtn.addEventListener('click', ()=>{
-    playing=false;
-    playBtn.textContent='▶ Reproducir';
-    cancelAnimationFrame(rafId);
-    t=0;
-    render();
-  });
-  rSlider.addEventListener('input', ()=>{
-    r = parseFloat(rSlider.value);
-    rValEl.textContent = fmt(r,1)+' m';
-    render();
-  });
-  if(isMCV){
-    w0Slider.addEventListener('input', ()=>{
-      w0Val = parseFloat(w0Slider.value);
-      w0ValEl.textContent = fmt(w0Val,1)+' rad/s';
-      t=0;
-      render();
-    });
-    alphaSlider.addEventListener('input', ()=>{
-      alphaVal = parseFloat(alphaSlider.value);
-      alphaValEl.textContent = fmt(alphaVal,1)+' rad/s²';
-      t=0;
-      render();
-    });
-  } else {
-    w0Slider.addEventListener('input', ()=>{
-      t=0;
-      const wVal = parseFloat(w0Slider.value);
-      document.getElementById(cfg.prefix+'-w-val').textContent = fmt(wVal,1)+' rad/s';
-      render();
-    });
-  }
-
-  render();
-}
-
-/* MCU: constant angular velocity */
-createCircularSim({
-  prefix:'mcu',
-  graph1:'th', graph2:'w',
-  hasAlpha:false,
-  emoji:'🎠'
-});
-
-/* MCV: constant angular acceleration */
-createCircularSim({
-  prefix:'mcv',
-  graph1:'w', graph2:'th',
-  hasAlpha:true,
-  emoji:'🌀'
-});
-
-
-/* ==========================================================
-   MOVIMIENTO PARABOLICO SIMULATION
-   ========================================================== */
-(function(){
-  const canvas = document.getElementById('pb-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-
-  const gx = document.getElementById('pb-graph-x');
-  const gxCtx = gx.getContext('2d');
-  const gy = document.getElementById('pb-graph-y');
-  const gyCtx = gy.getContext('2d');
-
-  const v0Slider = document.getElementById('pb-v0');
-  const angSlider = document.getElementById('pb-ang');
-  const v0ValEl = document.getElementById('pb-v0-val');
-  const angValEl = document.getElementById('pb-ang-val');
-  const playBtn = document.getElementById('pb-play');
-  const resetBtn = document.getElementById('pb-reset');
-  const tEl = document.getElementById('pb-t');
-  const rEl = document.getElementById('pb-r');
-  const hEl = document.getElementById('pb-h');
-
-  let v0 = parseFloat(v0Slider.value);
-  let angDeg = parseFloat(angSlider.value);
-  let t=0, playing=false, rafId=null, lastTs=null;
-  let T=0, R=0, Hmax=0, vx=0, vy0=0;
-
-  function recompute(){
-    const rad = angDeg*Math.PI/180;
-    vx = v0*Math.cos(rad);
-    vy0 = v0*Math.sin(rad);
-    T = 2*vy0/G;
-    R = vx*T;
-    Hmax = (vy0*vy0)/(2*G);
-  }
-
-  function xOf(tt){ return vx*tt; }
-  function yOf(tt){ return vy0*tt - 0.5*G*tt*tt; }
-
-  function worldToPx(xw, yw){
-    const padL=30, padR=20, padT=20, padB=40;
-    const usableW = W - padL - padR;
-    const usableH = H - padT - padB;
-    const scaleX = usableW / Math.max(R, 1);
-    const scaleY = usableH / Math.max(Hmax, 1);
-    const scale = Math.min(scaleX, scaleY);
-    const px = padL + xw*scale;
-    const py = (H - padB) - yw*scale;
-    return [px, py];
-  }
-
-  function drawScene(){
-    const [gx0, gy0] = worldToPx(0,0);
-    const [gx1, gy1x] = worldToPx(R,0);
-    fillSky(ctx, W, H, '#8fd0f5', '#dff1fb', gy0);
-    drawClouds(ctx, [
-      {x:W*0.14, y:32, size:24, alpha:0.85},
-      {x:W*0.58, y:52, size:30, alpha:0.75},
-      {x:W*0.85, y:24, size:18, alpha:0.7}
-    ]);
-    drawGrass(ctx, W, gy0, H);
-
-    // trajectory curve (dotted chalk trail)
-    ctx.strokeStyle='rgba(255,255,255,0.85)';
-    ctx.lineWidth=2.5;
-    ctx.setLineDash([2,7]);
-    ctx.lineCap='round';
-    ctx.beginPath();
-    const N=60;
-    for(let i=0;i<=N;i++){
-      const tt = T*i/N;
-      const [px,py] = worldToPx(xOf(tt), yOf(tt));
-      i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
-    }
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // max height dashed marker
-    const [hx, hy] = worldToPx(vx*(T/2), Hmax);
-    ctx.setLineDash([4,4]);
-    ctx.strokeStyle='rgba(255,150,60,0.65)';
-    ctx.beginPath(); ctx.moveTo(hx, gy0); ctx.lineTo(hx, hy); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // labels
-    ctx.fillStyle='rgba(20,35,55,0.65)';
-    ctx.font='10px JetBrains Mono, monospace';
-    ctx.fillText('0 m', gx0-4, gy0+16);
-    ctx.fillText(fmt(R,1)+' m', gx1-16, gy0+16);
-
-    // projectile marker
-    const curX = xOf(Math.min(t,T));
-    const curY = Math.max(0, yOf(Math.min(t,T)));
-    const [px,py] = worldToPx(curX, curY);
-    drawEmoji(ctx, '⚽', px, py, 26, 'rgba(0,0,0,0.3)');
-  }
-
-  function drawGraphs(){
-    const w=gx.width, h=gx.height, pad=26;
-    drawGraphAxes(gxCtx, w, h, pad);
-    drawGraphAxes(gyCtx, w, h, pad);
-
-    function xPx(tt){ return pad + (tt/T)*(w-2*pad); }
-    function yPxX(val){ return h-pad - (val/R)*(h-2*pad); }
-    function yPxY(val){ return h-pad - (val/Hmax)*(h-2*pad); }
-
-    // x-t (linear)
-    gxCtx.strokeStyle='#7fe7c4';
-    gxCtx.lineWidth=2;
-    gxCtx.beginPath();
-    gxCtx.moveTo(xPx(0), yPxX(0));
-    gxCtx.lineTo(xPx(T), yPxX(R));
-    gxCtx.stroke();
-    const curT = Math.min(t,T);
-    gxCtx.fillStyle='#ffb454';
-    gxCtx.beginPath(); gxCtx.arc(xPx(curT), yPxX(xOf(curT)), 4,0,Math.PI*2); gxCtx.fill();
-
-    // y-t (parabola)
-    gyCtx.strokeStyle='#6ea8fe';
-    gyCtx.lineWidth=2;
-    gyCtx.beginPath();
-    const N=40;
-    for(let i=0;i<=N;i++){
-      const tt=T*i/N;
-      const val = Math.max(0,yOf(tt));
-      i===0? gyCtx.moveTo(xPx(tt), yPxY(val)) : gyCtx.lineTo(xPx(tt), yPxY(val));
-    }
-    gyCtx.stroke();
-    gyCtx.fillStyle='#ffb454';
-    gyCtx.beginPath(); gyCtx.arc(xPx(curT), yPxY(Math.max(0,yOf(curT))), 4,0,Math.PI*2); gyCtx.fill();
-  }
-
-  function updateReadout(){
-    tEl.textContent = fmt(Math.min(t,T))+' s';
-    rEl.textContent = fmt(R)+' m';
-    hEl.textContent = fmt(Hmax)+' m';
-  }
-
-  function render(){
-    drawScene();
-    drawGraphs();
-    updateReadout();
-  }
-
-  function step(ts){
-    if(!playing) return;
-    if(lastTs===null) lastTs=ts;
-    const dt=(ts-lastTs)/1000;
-    lastTs=ts;
-    t+=dt;
-    if(t>=T){
-      t=T;
-      playing=false;
-      playBtn.textContent='▶ Reproducir';
-      render();
-      return;
-    }
-    render();
-    rafId=requestAnimationFrame(step);
-  }
-
-  playBtn.addEventListener('click', ()=>{
-    playing=!playing;
-    if(playing){
-      if(t>=T) t=0;
-      playBtn.textContent='⏸ Pausar';
-      lastTs=null;
-      rafId=requestAnimationFrame(step);
-    } else {
-      playBtn.textContent='▶ Reproducir';
-      cancelAnimationFrame(rafId);
-    }
-  });
-  resetBtn.addEventListener('click', ()=>{
-    playing=false;
-    playBtn.textContent='▶ Reproducir';
-    cancelAnimationFrame(rafId);
-    t=0;
-    render();
-  });
-  v0Slider.addEventListener('input', ()=>{
-    v0=parseFloat(v0Slider.value);
-    v0ValEl.textContent=v0+' m/s';
-    recompute();
-    t=0;
-    if(!playing) render();
-  });
-  angSlider.addEventListener('input', ()=>{
-    angDeg=parseFloat(angSlider.value);
-    angValEl.textContent=angDeg+'°';
-    recompute();
-    t=0;
-    if(!playing) render();
-  });
-
-  recompute();
-  render();
-})();
-
-/* ==========================================================
-   KIDS MODE — simple MRU race (speed presets, no formulas shown)
-   ========================================================== */
-(function(){
-  const canvas = document.getElementById('kid-mru-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const playBtn = document.getElementById('kid-mru-play');
-  const resetBtn = document.getElementById('kid-mru-reset');
-  const tEl = document.getElementById('kid-mru-t');
-  const housesEl = document.getElementById('kid-mru-houses');
-  const msgEl = document.getElementById('kid-mru-msg');
-  const btnSlow = document.getElementById('kid-speed-slow');
-  const btnNormal = document.getElementById('kid-speed-normal');
-  const btnFast = document.getElementById('kid-speed-fast');
-
-  const WORLD_MAX = 60, TMAX = 12;
-  let speed = 3; // slow default
-  let t=0, playing=false, rafId=null, lastTs=null;
-
-  function worldToPx(xw){
-    const pad=24;
-    return pad + (xw/WORLD_MAX)*(W-2*pad);
-  }
-
-  function setSpeed(val, btn){
-    speed = val;
-    [btnSlow,btnNormal,btnFast].forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    t=0; playing=false;
-    playBtn.textContent='▶ ¡Vamos!';
-    cancelAnimationFrame(rafId);
-    msgEl.textContent='';
-    render();
-  }
-  btnSlow.addEventListener('click', ()=>setSpeed(3, btnSlow));
-  btnNormal.addEventListener('click', ()=>setSpeed(6, btnNormal));
-  btnFast.addEventListener('click', ()=>setSpeed(11, btnFast));
-
-  function drawScene(x){
-    const roadY = H*0.68;
-    fillSky(ctx, W, H, '#8fd0f5', '#dff1fb', roadY-22);
-    drawClouds(ctx, [
-      {x:W*0.15, y:26, size:24, alpha:0.85},
-      {x:W*0.7, y:20, size:20, alpha:0.7}
-    ]);
-    const roadTop=roadY-20, roadBot=roadY+20;
-    ctx.fillStyle='#4a5468';
-    ctx.fillRect(0,roadTop,W,roadBot-roadTop);
-    ctx.strokeStyle='rgba(255,255,255,0.75)';
-    ctx.lineWidth=3;
-    ctx.setLineDash([14,10]);
-    ctx.beginPath(); ctx.moveTo(0,roadY); ctx.lineTo(W,roadY); ctx.stroke();
-    ctx.setLineDash([]);
-    drawGrass(ctx, W, roadBot, H);
-
-    // houses every 10 units as fun distance markers
-    for(let m=10; m<=WORLD_MAX; m+=10){
-      const px = worldToPx(m);
-      ctx.font='22px sans-serif';
-      ctx.textAlign='center';
-      ctx.fillText('🏠', px, roadTop-10);
-    }
-    // finish flag
-    ctx.font='26px sans-serif';
-    ctx.fillText('🏁', worldToPx(WORLD_MAX), roadTop-10);
-
-    const px = worldToPx(Math.min(WORLD_MAX, x));
-    drawEmoji(ctx, '🚗', px, roadY-2, 32, 'rgba(0,0,0,0.35)', true);
-  }
-
-  function render(){
-    const x = speed*t;
-    drawScene(x);
-    tEl.textContent = fmt(t,1);
-    housesEl.textContent = Math.floor(x/10);
-  }
-
-  function step(ts){
-    if(!playing) return;
-    if(lastTs===null) lastTs=ts;
-    const dt=(ts-lastTs)/1000;
-    lastTs=ts;
-    t+=dt;
-    const x = speed*t;
-    if(x>=WORLD_MAX || t>TMAX){
-      t = WORLD_MAX/speed;
-      playing=false;
-      playBtn.textContent='▶ ¡Vamos!';
-      render();
-      msgEl.textContent = '🎉 ¡Llegó a la meta en '+fmt(t,1)+' segundos!';
-      popAnimate(msgEl);
-      return;
-    }
-    render();
-    rafId=requestAnimationFrame(step);
-  }
-
-  playBtn.addEventListener('click', ()=>{
-    playing=!playing;
-    if(playing){
-      if(speed*t>=WORLD_MAX) t=0;
-      msgEl.textContent='';
-      playBtn.textContent='⏸ Pausa';
-      lastTs=null;
-      rafId=requestAnimationFrame(step);
-    } else {
-      playBtn.textContent='▶ ¡Vamos!';
-      cancelAnimationFrame(rafId);
-    }
-  });
-  resetBtn.addEventListener('click', ()=>{
-    playing=false;
-    playBtn.textContent='▶ ¡Vamos!';
-    cancelAnimationFrame(rafId);
-    t=0;
-    msgEl.textContent='';
-    render();
-  });
-
-  render();
-})();
-
-/* ==========================================================
-   KIDS MODE — simple falling apple (height presets)
-   ========================================================== */
-(function(){
-  const canvas = document.getElementById('kid-fall-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const playBtn = document.getElementById('kid-fall-play');
-  const resetBtn = document.getElementById('kid-fall-reset');
-  const tEl = document.getElementById('kid-fall-t');
-  const msgEl = document.getElementById('kid-fall-msg');
-  const btnLow = document.getElementById('kid-h-low');
-  const btnHigh = document.getElementById('kid-h-high');
-  const btnVeryHigh = document.getElementById('kid-h-veryhigh');
-
-  let h0 = 10;
-  let t=0, playing=false, rafId=null, lastTs=null;
-  let Tland = Math.sqrt(2*h0/G);
-  const maxScaleHeight = 70;
-
-  function setHeight(val, btn){
-    h0 = val;
-    Tland = Math.sqrt(2*h0/G);
-    [btnLow,btnHigh,btnVeryHigh].forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    t=0; playing=false;
-    playBtn.textContent='▶ ¡Suéltala!';
-    cancelAnimationFrame(rafId);
-    msgEl.textContent='';
-    render();
-  }
-  btnLow.addEventListener('click', ()=>setHeight(10, btnLow));
-  btnHigh.addEventListener('click', ()=>setHeight(30, btnHigh));
-  btnVeryHigh.addEventListener('click', ()=>setHeight(60, btnVeryHigh));
-
-  function yOf(tt){ return Math.max(0, h0 - 0.5*G*tt*tt); }
-
-  function worldYToPx(yw){
-    const padTop=16, padBot=36;
-    const usable = H - padTop - padBot;
-    return padTop + usable * (1 - yw/maxScaleHeight);
-  }
-
-  function drawScene(){
-    const groundPx = worldYToPx(0);
-    fillSky(ctx, W, H, '#8fd0f5', '#dff1fb', groundPx);
-    drawClouds(ctx, [
-      {x:W*0.18, y:34, size:26, alpha:0.85},
-      {x:W*0.75, y:56, size:22, alpha:0.75}
-    ]);
-    drawGrass(ctx, W, groundPx, H);
-
-    // a friendly tree/building hint at the drop height
-    const h0Px = worldYToPx(h0);
-    ctx.font='24px sans-serif';
-    ctx.textAlign='center';
-    ctx.fillText(h0<=10?'🌳':(h0<=30?'🏢':'✈️'), W*0.18, h0Px);
-
-    const curY = yOf(Math.min(t,Tland));
-    const ballPx = worldYToPx(curY);
-    const cx = W/2;
-    drawEmoji(ctx, '🍎', cx, ballPx, 30, 'rgba(0,0,0,0.3)');
-  }
-
-  function render(){
-    drawScene();
-    tEl.textContent = fmt(Math.min(t,Tland),1);
-  }
-
-  function step(ts){
-    if(!playing) return;
-    if(lastTs===null) lastTs=ts;
-    const dt=(ts-lastTs)/1000;
-    lastTs=ts;
-    t+=dt;
-    if(t>=Tland){
-      t=Tland;
-      playing=false;
-      playBtn.textContent='▶ ¡Suéltala!';
-      render();
-      msgEl.textContent = '🎉 ¡Tocó el suelo en '+fmt(Tland,1)+' segundos!';
-      popAnimate(msgEl);
-      return;
-    }
-    render();
-    rafId=requestAnimationFrame(step);
-  }
-
-  playBtn.addEventListener('click', ()=>{
-    playing=!playing;
-    if(playing){
-      if(t>=Tland) t=0;
-      msgEl.textContent='';
-      playBtn.textContent='⏸ Pausa';
-      lastTs=null;
-      rafId=requestAnimationFrame(step);
-    } else {
-      playBtn.textContent='▶ ¡Suéltala!';
-      cancelAnimationFrame(rafId);
-    }
-  });
-  resetBtn.addEventListener('click', ()=>{
-    playing=false;
-    playBtn.textContent='▶ ¡Suéltala!';
-    cancelAnimationFrame(rafId);
-    t=0;
-    msgEl.textContent='';
-    render();
-  });
-
-  render();
-})();
-
-/* ==========================================================
-   KIDS MODE — mini quiz
-   ========================================================== */
-(function(){
-  const feedback = document.getElementById('kid-quiz-feedback');
-  document.querySelectorAll('#topic-ninos .kids-card:last-child .kids-choice').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('#topic-ninos .kids-card:last-child .kids-choice').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      const correct = btn.dataset.correct === 'yes';
-      feedback.textContent = correct
-        ? '🎉 ¡Correcto! El que va más rápido llega primero a la meta.'
-        : '🤔 ¡Casi! Piensa: si los dos salen juntos, ¿cuál avanza más en el mismo tiempo?';
-      feedback.style.color = correct ? '#3a8a5a' : '#c0562a';
-      popAnimate(feedback);
-    });
-  });
-})();
-
-/* ==========================================================
-   PERSONAL ASSISTANT — enter known values, get results + simulation
-   ========================================================== */
-(function(){
-  const typeSelect = document.getElementById('asst-type');
-  const fields = document.querySelectorAll('.asst-field');
-  const errorEl = document.getElementById('asst-error');
-  const resultsEl = document.getElementById('asst-results');
-  const calcBtn = document.getElementById('asst-calc');
-  const playBtn = document.getElementById('asst-play');
-  const resetBtn = document.getElementById('asst-reset');
-  const canvas = document.getElementById('asst-canvas');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-
-  let type = 'mru';
-  let params = {};
-  let t = 0, Tmax = 6, playing = false, rafId = null, lastTs = null;
-  let ready = false;
-
-  function updateFieldsVisibility(){
-    fields.forEach(f=>{
-      const types = f.dataset.types.split(' ');
-      f.classList.toggle('hidden', !types.includes(type));
-    });
-  }
-  typeSelect.addEventListener('change', ()=>{
-    type = typeSelect.value;
-    updateFieldsVisibility();
-    errorEl.textContent='';
-  });
-  updateFieldsVisibility();
-
-  function num(id){ return parseFloat(document.getElementById(id).value); }
-
-  function setResults(list){
-    resultsEl.innerHTML='';
-    list.forEach(([k,v],i)=>{
-      const div = document.createElement('div');
-      div.className='rcell';
-      div.innerHTML = '<span class="rk">'+k+'</span><span class="rv">'+v+'</span>';
-      div.style.animationDelay = (i*0.06)+'s';
-      div.classList.add('pop-in');
-      resultsEl.appendChild(div);
-    });
-  }
-
-  function calc(){
-    errorEl.textContent='';
-    let vals = {};
-    try{
-      if(type==='mru'){
-        vals.x0=num('asst-x0'); vals.v=num('asst-v'); const tIn=num('asst-t');
-        if([vals.x0,vals.v,tIn].some(isNaN)) throw new Error('Completa x₀, v y t con números.');
-        Tmax = Math.max(tIn, 0.5);
-        params = vals;
-        const x = vals.x0 + vals.v*Tmax;
-        setResults([['tiempo', fmt(Tmax)+' s'],['velocidad', fmt(vals.v)+' m/s'],['posición x', fmt(x)+' m']]);
-      } else if(type==='mruv'){
-        vals.x0=num('asst-x0'); vals.v0=num('asst-v0'); vals.a=num('asst-a'); const tIn=num('asst-t');
-        if([vals.x0,vals.v0,vals.a,tIn].some(isNaN)) throw new Error('Completa x₀, v₀, a y t con números.');
-        Tmax = Math.max(tIn, 0.5);
-        params = vals;
-        const v = vals.v0 + vals.a*Tmax;
-        const x = vals.x0 + vals.v0*Tmax + 0.5*vals.a*Tmax*Tmax;
-        setResults([['tiempo', fmt(Tmax)+' s'],['velocidad final', fmt(v)+' m/s'],['posición x', fmt(x)+' m']]);
-      } else if(type==='caida'){
-        vals.h0=num('asst-h0');
-        if(isNaN(vals.h0) || vals.h0<=0) throw new Error('Escribe una altura inicial mayor que 0.');
-        params = vals;
-        Tmax = Math.sqrt(2*vals.h0/G);
-        const vLlegada = G*Tmax;
-        setResults([['tiempo de caída', fmt(Tmax)+' s'],['velocidad de llegada', fmt(vLlegada)+' m/s'],['altura inicial', fmt(vals.h0)+' m']]);
-      } else if(type==='lanzamiento'){
-        vals.v0=num('asst-v0');
-        if(isNaN(vals.v0) || vals.v0<=0) throw new Error('Escribe una velocidad inicial mayor que 0.');
-        params = vals;
-        const tSubida = vals.v0/G;
-        const hMax = (vals.v0*vals.v0)/(2*G);
-        Tmax = 2*vals.v0/G;
-        setResults([['tiempo de subida', fmt(tSubida)+' s'],['altura máxima', fmt(hMax)+' m'],['tiempo total de vuelo', fmt(Tmax)+' s']]);
-      } else if(type==='parabolico'){
-        vals.v0=num('asst-v0'); vals.ang=num('asst-ang');
-        if([vals.v0,vals.ang].some(isNaN) || vals.v0<=0 || vals.ang<=0 || vals.ang>=90) throw new Error('v₀ debe ser mayor que 0 y el ángulo entre 1 y 89 grados.');
-        params = vals;
-        const rad = vals.ang*Math.PI/180;
-        const vx = vals.v0*Math.cos(rad), vy0=vals.v0*Math.sin(rad);
-        Tmax = 2*vy0/G;
-        const R = vx*Tmax;
-        const Hmax = (vy0*vy0)/(2*G);
-        params.vx=vx; params.vy0=vy0; params.R=R; params.Hmax=Hmax;
-        setResults([['tiempo de vuelo', fmt(Tmax)+' s'],['alcance R', fmt(R)+' m'],['altura máxima H', fmt(Hmax)+' m']]);
-      } else if(type==='mcu'){
-        vals.r=num('asst-r'); vals.w=num('asst-w'); const tIn=num('asst-t');
-        if([vals.r,vals.w,tIn].some(isNaN)) throw new Error('Completa radio, ω y t con números.');
-        Tmax = Math.max(tIn, 0.5);
-        params = vals;
-        const theta = vals.w*Tmax;
-        const deg = ((theta*180/Math.PI)%360+360)%360;
-        const vTang = vals.w*vals.r;
-        const periodo = 2*Math.PI/Math.abs(vals.w);
-        setResults([['tiempo', fmt(Tmax)+' s'],['ángulo θ', fmt(deg,1)+'°'],['velocidad tangencial', fmt(vTang)+' m/s'],['periodo T', fmt(periodo)+' s']]);
-      } else if(type==='mcv'){
-        vals.r=num('asst-r'); vals.w0=num('asst-w0'); vals.alpha=num('asst-alpha'); const tIn=num('asst-t');
-        if([vals.r,vals.w0,vals.alpha,tIn].some(isNaN)) throw new Error('Completa radio, ω₀, α y t con números.');
-        Tmax = Math.max(tIn, 0.5);
-        params = vals;
-        const theta = vals.w0*Tmax + 0.5*vals.alpha*Tmax*Tmax;
-        const deg = ((theta*180/Math.PI)%360+360)%360;
-        const wFinal = vals.w0 + vals.alpha*Tmax;
-        setResults([['tiempo', fmt(Tmax)+' s'],['ángulo girado', fmt(deg,1)+'°'],['velocidad angular final', fmt(wFinal,2)+' rad/s']]);
-      }
-      ready = true;
-      t = 0;
-      render();
-      startPlaying();
-    } catch(e){
-      errorEl.textContent = '⚠️ '+e.message;
-      ready = false;
-    }
-  }
-
-  function render(){
-    ctx.clearRect(0,0,W,H);
-    if(!ready){
-      fillSky(ctx, W, H, '#0d1626', '#0d1626', H);
-      ctx.fillStyle='rgba(141,153,179,0.7)';
-      ctx.font='13px JetBrains Mono, monospace';
-      ctx.textAlign='center';
-      ctx.fillText('Escribe tus datos y presiona "Calcular y simular" ✨', W/2, H/2);
-      return;
-    }
-    if(type==='mru' || type==='mruv'){
-      const roadY = H*0.62;
-      let x0,vFinal,xNow,xEnd;
-      if(type==='mru'){
-        x0=params.x0; xNow = x0+params.v*t; xEnd = x0+params.v*Tmax; vFinal=params.v;
+      used[bestIdx] = true;
+      var magErr = Math.abs(best.magnitude - cf.magnitude) / cf.magnitude;
+      var angErr = Math.abs(best.angleDeg - cf.angleDeg) % 360;
+      if(angErr > 180) angErr = 360 - angErr;
+      if(magErr <= 0.15 && angErr <= 12){
+        points += 1;
+        details.push({status:'ok', text: typeLabel + ': correcto (' + best.magnitude.toFixed(1) + ' N, ' + Math.round(best.angleDeg) + '°).'});
       } else {
-        x0=params.x0; xNow = x0+params.v0*t+0.5*params.a*t*t; xEnd = x0+params.v0*Tmax+0.5*params.a*Tmax*Tmax; vFinal=params.v0+params.a*t;
+        points += 0.5;
+        details.push({status:'warn', text: typeLabel + ': dirección o magnitud imprecisa. Esperado ≈ ' + cf.magnitude + ' N a ' + cf.angleDeg + '°, pusiste ' + best.magnitude.toFixed(1) + ' N a ' + Math.round(best.angleDeg) + '°.'});
       }
-      let wMin = Math.min(x0,xEnd)-15, wMax = Math.max(x0,xEnd)+15;
-      if(wMax-wMin<30){ const mid=(wMax+wMin)/2; wMin=mid-15; wMax=mid+15; }
-      function toPx(xw){ const pad=24; return pad + (xw-wMin)/(wMax-wMin)*(W-2*pad); }
-      fillSky(ctx, W, H, '#8fd0f5', '#dff1fb', roadY-22);
-      drawClouds(ctx, [{x:W*0.15,y:26,size:24,alpha:0.85},{x:W*0.7,y:20,size:20,alpha:0.7}]);
-      const roadTop=roadY-20, roadBot=roadY+20;
-      ctx.fillStyle='#4a5468'; ctx.fillRect(0,roadTop,W,roadBot-roadTop);
-      ctx.strokeStyle='rgba(255,255,255,0.75)'; ctx.lineWidth=3;
-      ctx.setLineDash([14,10]); ctx.beginPath(); ctx.moveTo(0,roadY); ctx.lineTo(W,roadY); ctx.stroke(); ctx.setLineDash([]);
-      drawGrass(ctx, W, roadBot, H);
-      const step10 = Math.max(10, Math.round((wMax-wMin)/8/10)*10);
-      ctx.fillStyle='rgba(20,35,55,0.65)'; ctx.font='10px JetBrains Mono, monospace'; ctx.textAlign='center';
-      for(let m=Math.ceil(wMin/step10)*step10; m<=wMax; m+=step10){
-        const px=toPx(m);
-        ctx.strokeStyle='rgba(20,35,55,0.25)'; ctx.beginPath(); ctx.moveTo(px,roadTop-6); ctx.lineTo(px,roadTop); ctx.stroke();
-        ctx.fillText(m+'m', px, roadTop-14);
-      }
-      const emoji = type==='mru' ? '🚗' : '🏎️';
-      drawEmoji(ctx, emoji, toPx(xNow), roadY-2, 30, 'rgba(0,0,0,0.35)', vFinal>=0);
-    }
-    else if(type==='caida' || type==='lanzamiento'){
-      let h0, v0, y;
-      if(type==='caida'){ h0=params.h0; v0=0; y=Math.max(0, h0-0.5*G*t*t); }
-      else { h0=0; v0=params.v0; y=Math.max(0, v0*t-0.5*G*t*t); }
-      const maxH = type==='caida' ? h0*1.15 : ((v0*v0)/(2*G))*1.3;
-      function toPy(yw){ const padTop=16,padBot=36; return padTop + (H-padTop-padBot)*(1-yw/Math.max(maxH,1)); }
-      const groundPx = toPy(0);
-      fillSky(ctx, W, H, '#8fd0f5', '#dff1fb', groundPx);
-      drawClouds(ctx, [{x:W*0.18,y:34,size:26,alpha:0.85},{x:W*0.75,y:56,size:22,alpha:0.75}]);
-      drawGrass(ctx, W, groundPx, H);
-      if(h0>0){
-        const h0Px = toPy(h0);
-        ctx.strokeStyle='rgba(255,150,60,0.55)'; ctx.setLineDash([4,4]);
-        ctx.beginPath(); ctx.moveTo(0,h0Px); ctx.lineTo(W,h0Px); ctx.stroke(); ctx.setLineDash([]);
-      }
-      const cx=W/2;
-      const emoji = type==='caida' ? '🪨' : '🏐';
-      drawEmoji(ctx, emoji, cx, toPy(y), 30, 'rgba(0,0,0,0.3)');
-    }
-    else if(type==='parabolico'){
-      const {vx,vy0,R,Hmax} = params;
-      function toPx2(xw,yw){
-        const padL=30,padR=20,padT=20,padB=40;
-        const uW=W-padL-padR, uH=H-padT-padB;
-        const scale = Math.min(uW/Math.max(R,1), uH/Math.max(Hmax,1));
-        return [padL+xw*scale, (H-padB)-yw*scale];
-      }
-      const [gx0,gy0] = toPx2(0,0);
-      fillSky(ctx, W, H, '#8fd0f5', '#dff1fb', gy0);
-      drawClouds(ctx, [{x:W*0.14,y:32,size:24,alpha:0.85},{x:W*0.58,y:52,size:30,alpha:0.75}]);
-      drawGrass(ctx, W, gy0, H);
-      ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.lineWidth=2.5; ctx.setLineDash([2,7]); ctx.lineCap='round';
-      ctx.beginPath();
-      for(let i=0;i<=60;i++){
-        const tt=Tmax*i/60;
-        const [px,py]=toPx2(vx*tt, Math.max(0,vy0*tt-0.5*G*tt*tt));
-        i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
-      }
-      ctx.stroke(); ctx.setLineDash([]);
-      const curX = vx*Math.min(t,Tmax), curY = Math.max(0, vy0*Math.min(t,Tmax)-0.5*G*Math.min(t,Tmax)*Math.min(t,Tmax));
-      const [px,py] = toPx2(curX,curY);
-      drawEmoji(ctx, '⚽', px, py, 26, 'rgba(0,0,0,0.3)');
-    }
-    else if(type==='mcu' || type==='mcv'){
-      fillSky(ctx, W, H, '#cfd6f7', '#f3d9ee');
-      drawSparkles(ctx, [{x:W*0.12,y:H*0.18,size:14},{x:W*0.85,y:H*0.22,size:12},{x:W*0.5,y:H*0.12,size:12}]);
-      const cx=W/2, cy=H/2+10, pxPerM=Math.min(60, (W*0.35)/Math.max(params.r,0.5));
-      const radiusPx = params.r*pxPerM;
-      ctx.strokeStyle='rgba(60,50,90,0.3)'; ctx.lineWidth=1.5; ctx.setLineDash([5,5]);
-      ctx.beginPath(); ctx.arc(cx,cy,radiusPx,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle='rgba(60,50,90,0.5)'; ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fill();
-      let theta;
-      if(type==='mcu') theta = params.w*t;
-      else theta = params.w0*t + 0.5*params.alpha*t*t;
-      const px=cx+radiusPx*Math.cos(theta), py=cy-radiusPx*Math.sin(theta);
-      ctx.strokeStyle='rgba(110,168,254,0.55)'; ctx.lineWidth=1.5;
-      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py); ctx.stroke();
-      drawEmoji(ctx, type==='mcu'?'🎠':'🌀', px, py, 28, 'rgba(0,0,0,0.25)');
-    }
+    });
+    studentForces.forEach(function(sf, idx){
+      if(!used[idx]){ details.push({status:'extra', text:'Sobra una fuerza (' + FORCE_TYPES[sf.typeKey].label + ') que no corresponde a este problema.'}); }
+    });
+    var pct = Math.round((points / ex.correctForces.length) * 100);
+    return {pct: pct, details: details};
   }
 
-  function step(ts){
-    if(!playing) return;
-    if(lastTs===null) lastTs=ts;
-    const dt=(ts-lastTs)/1000;
-    lastTs=ts;
-    t+=dt;
-    if(t>=Tmax){
-      t=Tmax;
-      playing=false;
-      playBtn.textContent='▶ Reproducir';
-      render();
-      return;
-    }
-    render();
-    rafId=requestAnimationFrame(step);
+  /* ============ EXAM STATE (localStorage, one attempt) ============ */
+  var EXAM_KEY = 'dclLabExam_v1';
+  function loadExamState(){
+    try{
+      var raw = localStorage.getItem(EXAM_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
   }
-  function startPlaying(){
-    playing=true;
-    playBtn.textContent='⏸ Pausar';
-    lastTs=null;
-    rafId=requestAnimationFrame(step);
+  function saveExamState(state){
+    try{ localStorage.setItem(EXAM_KEY, JSON.stringify(state)); }catch(e){ /* almacenamiento no disponible: el examen sigue funcionando en esta sesión */ }
   }
 
-  calcBtn.addEventListener('click', calc);
-  playBtn.addEventListener('click', ()=>{
-    if(!ready) return;
-    playing=!playing;
-    if(playing){
-      if(t>=Tmax) t=0;
-      playBtn.textContent='⏸ Pausar';
-      lastTs=null;
-      rafId=requestAnimationFrame(step);
+  var examList = document.getElementById('examList');
+  var examResultant = document.getElementById('examResultant');
+  var examInst = new ForceCanvas(document.getElementById('examCanvas'), function(){
+    renderList(examList, examInst);
+    updateResultant(examResultant, examInst);
+  });
+  wireForceForm('exam', examInst);
+  document.getElementById('examClearBtn').addEventListener('click', function(){ examInst.clear(); });
+
+  function setExamView(name){
+    ['examStartView','examProgressView','examResultsView'].forEach(function(id){
+      document.getElementById(id).classList.toggle('show', id === name);
+    });
+  }
+
+  function renderExamPage(){
+    var state = loadExamState();
+    if(!state){ setExamView('examStartView'); return; }
+    if(state.done){ renderResultsView(state); setExamView('examResultsView'); return; }
+    renderProgressView(state);
+    setExamView('examProgressView');
+  }
+
+  document.getElementById('startExamBtn').addEventListener('click', function(){
+    var state = { questions: buildExamQuestions(), answers: [], currentIndex: 0, done: false };
+    for(var i = 0; i < EXAM_SIZE; i++){ state.answers.push([]); }
+    saveExamState(state);
+    renderProgressView(state);
+    setExamView('examProgressView');
+  });
+
+  function renderProgressView(state){
+    var q = state.questions[state.currentIndex];
+    document.getElementById('examQCounter').textContent = 'Pregunta ' + (state.currentIndex + 1) + ' de ' + state.questions.length;
+    document.getElementById('examQTitle').textContent = q.title;
+    document.getElementById('examStatement').innerHTML = q.statement;
+    var iconEl = document.getElementById('examQIcon');
+    iconEl.textContent = q.icon || '🧲';
+    iconEl.style.animation = 'none'; void iconEl.offsetWidth; iconEl.style.animation = '';
+    document.getElementById('examTip').innerHTML = q.tip || '';
+    document.getElementById('examGiven').innerHTML = q.given.map(function(pair){
+      return '<div class="given-row"><span>' + pair[0] + '</span><strong>' + pair[1] + '</strong></div>';
+    }).join('');
+    var fillPct = Math.round(((state.currentIndex) / (state.questions.length - 1 || 1)) * 100);
+    document.getElementById('examProgressFill').style.width = fillPct + '%';
+    examInst.setForces(state.answers[state.currentIndex]);
+    document.getElementById('examPrevBtn').disabled = state.currentIndex === 0;
+    document.getElementById('examNextBtn').textContent = (state.currentIndex === state.questions.length - 1) ? 'Finalizar examen' : 'Siguiente →';
+
+    var dots = document.getElementById('examDots');
+    dots.innerHTML = '';
+    state.questions.forEach(function(_, i){
+      var d = document.createElement('span');
+      if(i === state.currentIndex) d.className = 'current';
+      else if(state.answers[i] && state.answers[i].length > 0) d.className = 'answered';
+      dots.appendChild(d);
+    });
+  }
+
+  function currentSerializedForces(){
+    return examInst.forces.map(function(f){
+      return { typeKey:f.typeKey, label:f.label, magnitude:f.magnitude, angleDeg:f.angleDeg, color:f.color };
+    });
+  }
+
+  document.getElementById('examPrevBtn').addEventListener('click', function(){
+    var state = loadExamState();
+    if(!state || state.done) return;
+    state.answers[state.currentIndex] = currentSerializedForces();
+    if(state.currentIndex > 0){ state.currentIndex--; }
+    saveExamState(state);
+    renderProgressView(state);
+  });
+
+  document.getElementById('examNextBtn').addEventListener('click', function(){
+    var state = loadExamState();
+    if(!state || state.done) return;
+    state.answers[state.currentIndex] = currentSerializedForces();
+    if(state.currentIndex < state.questions.length - 1){
+      state.currentIndex++;
+      saveExamState(state);
+      renderProgressView(state);
     } else {
-      playBtn.textContent='▶ Reproducir';
-      cancelAnimationFrame(rafId);
+      finalizeExam(state);
     }
   });
-  resetBtn.addEventListener('click', ()=>{
-    if(!ready) return;
-    playing=false;
-    playBtn.textContent='▶ Reproducir';
-    cancelAnimationFrame(rafId);
-    t=0;
-    render();
+
+  function finalizeExam(state){
+    var results = state.questions.map(function(q, i){
+      var r = verify(q, state.answers[i] || []);
+      return { title: q.title, pct: r.pct, details: r.details };
+    });
+    var overall = Math.round(results.reduce(function(s, r){ return s + r.pct; }, 0) / results.length);
+    state.done = true;
+    state.results = results;
+    state.overall = overall;
+    state.finishedAt = new Date().toISOString();
+    saveExamState(state);
+    renderResultsView(state);
+    setExamView('examResultsView');
+  }
+
+  var STATUS_ICON = {ok:'✓', warn:'△', missing:'✕', extra:'!'};
+  var STATUS_CLASS = {ok:'status-ok', warn:'status-warn', missing:'status-missing', extra:'status-extra'};
+
+  function renderResultsView(state){
+    var badge = document.getElementById('examScoreBadge');
+    var pass = state.overall >= 70;
+    badge.className = 'score-badge ' + (pass ? 'good' : 'bad');
+    animateCountUp(document.getElementById('examScoreNum'), state.overall);
+    document.getElementById('examVerdictTitle').textContent = pass ? '¡Buen dominio del tema!' : 'Sigue practicando';
+    document.getElementById('examVerdictText').textContent = pass
+      ? 'Identificaste correctamente la mayoría de las fuerzas de cada problema.'
+      : 'Revisa las fuerzas que fallaste abajo y practica esos casos en el simulador.';
+
+    var list = document.getElementById('examResultsList');
+    list.innerHTML = state.results.map(function(r, i){
+      var items = r.details.map(function(d){
+        return '<li><span class="fb-status ' + STATUS_CLASS[d.status] + '">' + STATUS_ICON[d.status] + '</span> ' + d.text + '</li>';
+      }).join('');
+      return '<div class="q-result"><div class="q-result-head"><span>Pregunta ' + (i + 1) + ' — ' + r.title + '</span><span>' + r.pct + '%</span></div><ul>' + items + '</ul></div>';
+    }).join('');
+
+    var shareBtn = document.getElementById('shareCartillaBtn');
+    if(navigator.share){ shareBtn.style.display = 'inline-flex'; } else { shareBtn.style.display = 'none'; }
+
+    if(pass){ launchConfetti(); }
+  }
+
+  function animateCountUp(el, target){
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduced){ el.textContent = target + '%'; return; }
+    var start = 0, duration = 900, startTime = null;
+    function step(ts){
+      if(!startTime) startTime = ts;
+      var progress = Math.min((ts - startTime) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(start + (target - start) * eased) + '%';
+      if(progress < 1){ requestAnimationFrame(step); }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function launchConfetti(){
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduced) return;
+    var canvas = document.getElementById('confettiCanvas');
+    var ctx = canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    ctx.scale(dpr, dpr);
+    var colors = ['#FFD166', '#FF6B6B', '#4ECDC4', '#95E06C', '#C084FC'];
+    var pieces = [];
+    for(var i = 0; i < 90; i++){
+      pieces.push({
+        x: Math.random() * window.innerWidth,
+        y: -20 - Math.random() * 200,
+        w: 6 + Math.random() * 5,
+        h: 8 + Math.random() * 6,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vy: 2 + Math.random() * 3,
+        vx: -1.5 + Math.random() * 3,
+        rot: Math.random() * 360,
+        vr: -6 + Math.random() * 12
+      });
+    }
+    var start = null, dur = 2600;
+    function frame(ts){
+      if(!start) start = ts;
+      var elapsed = ts - start;
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      pieces.forEach(function(p){
+        p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot * Math.PI / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+        ctx.restore();
+      });
+      if(elapsed < dur){ requestAnimationFrame(frame); }
+      else { ctx.clearRect(0, 0, window.innerWidth, window.innerHeight); }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ============ CARTILLA IMAGE (canvas -> PNG) ============ */
+  function buildReportCanvas(state){
+    var W = 720, PAD = 40;
+    var rowH = 30;
+    var extraLinesPerQ = state.results.reduce(function(sum, r){ return sum + r.details.length; }, 0);
+    var H = 300 + state.results.length * 46 + extraLinesPerQ * 20 + 60;
+    var scale = 2;
+    var canvas = document.createElement('canvas');
+    canvas.width = W * scale; canvas.height = H * scale;
+    var ctx = canvas.getContext('2d');
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = '#F6F1E3'; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#1E2A22'; ctx.lineWidth = 2; ctx.strokeRect(6, 6, W - 12, H - 12);
+
+    ctx.fillStyle = '#1E2A22';
+    ctx.font = '700 22px Georgia, serif';
+    ctx.fillText('DCL·Lab — Cartilla de resultados', PAD, 56);
+    ctx.font = '12px monospace';
+    ctx.fillStyle = '#6b6250';
+    var dateStr = new Date(state.finishedAt).toLocaleString();
+    ctx.fillText(dateStr, PAD, 76);
+
+    var pass = state.overall >= 70;
+    ctx.fillStyle = pass ? '#2f9e58' : '#b23b3b';
+    ctx.font = '700 40px monospace';
+    ctx.fillText(state.overall + '%', PAD, 130);
+    ctx.font = '600 14px sans-serif';
+    ctx.fillText(pass ? 'Buen dominio del tema' : 'Sigue practicando', PAD + 130, 122);
+
+    ctx.strokeStyle = '#c9c0a6';
+    ctx.beginPath(); ctx.moveTo(PAD, 150); ctx.lineTo(W - PAD, 150); ctx.stroke();
+
+    var y = 180;
+    ctx.textBaseline = 'alphabetic';
+    state.results.forEach(function(r, i){
+      ctx.fillStyle = '#1E2A22';
+      ctx.font = '700 14px sans-serif';
+      ctx.fillText((i + 1) + '. ' + r.title, PAD, y);
+      ctx.fillStyle = r.pct >= 100 ? '#2f9e58' : (r.pct > 0 ? '#a6790f' : '#b23b3b');
+      ctx.font = '700 14px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText(r.pct + '%', W - PAD, y);
+      ctx.textAlign = 'left';
+      y += 20;
+      ctx.font = '12px sans-serif';
+      r.details.forEach(function(d){
+        ctx.fillStyle = d.status === 'ok' ? '#2f9e58' : (d.status === 'missing' ? '#b23b3b' : '#7a5a17');
+        var icon = STATUS_ICON[d.status];
+        var line = icon + ' ' + d.text;
+        ctx.fillText(line.length > 92 ? line.slice(0, 90) + '…' : line, PAD + 14, y);
+        y += 18;
+      });
+      y += 12;
+    });
+
+    ctx.fillStyle = '#8a8064';
+    ctx.font = '11px monospace';
+    ctx.fillText('Generado en DCL·Lab · un solo intento por dispositivo', PAD, H - 20);
+
+    return canvas;
+  }
+
+  document.getElementById('downloadCartillaBtn').addEventListener('click', function(){
+    var state = loadExamState();
+    if(!state || !state.done) return;
+    var canvas = buildReportCanvas(state);
+    canvas.toBlob(function(blob){
+      if(!blob) return;
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = 'cartilla-dcl-lab.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+    }, 'image/png');
   });
 
-  render();
-})();
+  document.getElementById('shareCartillaBtn').addEventListener('click', function(){
+    var state = loadExamState();
+    if(!state || !state.done) return;
+    var canvas = buildReportCanvas(state);
+    canvas.toBlob(function(blob){
+      if(!blob) return;
+      try{
+        var file = new File([blob], 'cartilla-dcl-lab.png', {type:'image/png'});
+        if(navigator.canShare && navigator.canShare({files:[file]})){
+          navigator.share({files:[file], title:'Mi cartilla DCL·Lab', text:'Resultado de mi examen de Diagramas de Cuerpo Libre'}).catch(function(){});
+          return;
+        }
+      }catch(err){ /* sin soporte para compartir archivos, se descarga en su lugar */ }
+      document.getElementById('downloadCartillaBtn').click();
+    }, 'image/png');
+  });
 
+})();
 </script>
 </body>
 </html>
